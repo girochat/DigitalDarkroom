@@ -24,7 +24,7 @@ Here you'll find important documentation about the project. If you have suggesti
 - Report bugs
 - Suggest improvements
 - Code extensions
-- Fix [issues](https://gitlab.com/girochat/python-project-temp/-/boards)
+- Fix [issues](https://github.com/AdvPyS23/DigitalDarkroom/issues)
 
 
 # 3. Timeline :hourglass_flowing_sand:
