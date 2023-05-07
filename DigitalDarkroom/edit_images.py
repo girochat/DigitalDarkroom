@@ -6,6 +6,7 @@ Module for editing images
 import os
 import sys
 from PIL import (Image, ImageEnhance, ImageFilter)
+import display_images as implay
 
 # only to run script locally -> delete later on
 #os.environ["IMAGES_PATH"] = os.path.join(os.getcwd(), "Images")
@@ -17,35 +18,27 @@ def select_image():
     image_selected = False
     while not image_selected:
 
-        # Ask user for the name of the event folder
-        event = input("In which event folder is your image located."
-                      " Enter its name, write 'quit' or press 'q' to quit. \n")
+        # Ask user to select an event    (=> used the get_event function in display_images, too much dependency?)
+        event_path = implay.get_event()
+        if event_path == "":  # => improvement : how to return to run_program directly from get_event in display_images.py?
+            return
 
-        if event in ["q", "quit"]:
+        # Ask user for name of the image
+        image = input("Please enter the full name of the image you would like to edit "
+                      "or press 'q'.\n")
+
+        if image in ["q", "quit"]:
             sys.exit()
 
-        path_to_event_folder = os.path.join(os.environ["IMAGES_PATH"], event)
-        if os.path.exists(path_to_event_folder):
-
-            # Ask user for name of the image
-            image = input("Please enter the full name of the image you would like to edit "
-                           "or press 'q'.\n")
-
-            if image in ["q", "quit"]:
-                sys.exit()
-
-            path_to_file = os.path.join(path_to_event_folder, image)
-            if os.path.exists(path_to_file):
-                img =  Image.open(path_to_file)
-                image_selected = True
-                return img
+        path_to_file = os.path.join(event_path, image)
+        if os.path.exists(path_to_file):
+            img =  Image.open(path_to_file)
+            image_selected = True
+            return img, event_path
             
-            print("Image could not be found. Try again or press q to quit.\n")
-        else:
-            print("The event folder could not be found. Try again or press q to quit.\n")
+        print("Image could not be found. Try again or press q to quit.\n")
 
-
-def image_filtering(img):
+def image_filtering(img, event_path):
     """ Let the user select a filter from different options to apply to the image
     """
     func_input = input("What type of image filtering would you like to do?\n"
@@ -68,13 +61,13 @@ def image_filtering(img):
     if func_input.strip() in func_map.keys():
         func = func_map[func_input]
         im2 = img.filter(func)
-        im2.show() # choose different preview -> script
+        implay.preview(im2, event_path) 
     
     else:
         print("Sorry, the option could not be found!")
 
 
-def image_enhancement(img):
+def image_enhancement(img, event_path):
     """ Function to let the user apply different image enhancement options
     """
     func_map = {'s':ImageEnhance.Sharpness,
@@ -106,14 +99,14 @@ def image_enhancement(img):
 
     curr_sharp = func_map[func_input](img)
     img_sharped = curr_sharp.enhance(float(effect))
-    img_sharped.show()
+    implay.preview(img_sharped, event_path)
     
 
 def edit():
     """ Function to handle user input for image editing
     """
     # Let the user select the image
-    img = select_image()
+    img, event_path = select_image()
     
     quit_editing = False
     while not quit_editing:
@@ -125,10 +118,10 @@ def edit():
                         "- Go back to the main program => type 'Q' or 'quit'\n").lower()
         
         if next_task in ["f", "filter"]:
-            image_filtering(img)
+            image_filtering(img, event_path)
             
         elif next_task in ["e", "enhance"]:
-            image_enhancement(img)
+            image_enhancement(img, event_path)
             
         elif next_task in ["q", "quit"]:
             quit_editing = True
