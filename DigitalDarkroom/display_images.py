@@ -24,7 +24,6 @@ import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.cbook as cbk
-import matplotlib
 from matplotlib.backend_bases import NavigationToolbar2
 from PIL import Image, UnidentifiedImageError
 
