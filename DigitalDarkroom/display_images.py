@@ -149,6 +149,7 @@ def preview(edited_image, event_path):
         the edited image to preview
     """ 
     plt.imshow(edited_image)
+    plt.axis('off')
     plt.show()
     
     answer = False
