@@ -186,6 +186,7 @@ def display():
 
     # Start the image display
     plt.imshow(images[0])
+    plt.axis("off")
     plt.show()
     
     # Re-implement default toolbar functions
