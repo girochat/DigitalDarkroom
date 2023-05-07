@@ -1,10 +1,9 @@
 import os
-#import DigiDarklib as DD  # contains our future functions to be called in run_program.py, to be continued ;)
 import image_upload as imload 
 import display_images as implay
 
 # Define constant global variables for program paths
-os.environ["PROGRAM_PATH"] = os.getcwd()     # => to check if works when script is run from remote location
+os.environ["PROGRAM_PATH"] = os.path.dirname(os.path.realpath(__file__))  
 os.environ["IMAGES_PATH"] = os.path.join(os.environ["PROGRAM_PATH"], "Images")
 try:
     os.environ["HOME_PATH"] = os.environ['HOME']
@@ -13,7 +12,7 @@ except KeyError:
 
 # Display welcoming message (with figlet if module pyfiglet installed)
 try:
-    from pyfiglet import Figlet  # to add in requirements.txt
+    from pyfiglet import Figlet 
     font = Figlet(font='thin')
     print(font.renderText('Welcome to Digital Darkroom!!!\n'))
     figlet = True
@@ -27,7 +26,7 @@ while not quit:
     
     # Display (and launch) program activities to the user
     print("What do you want to do?")
-    next_task = input("- Update new images in Digital Darkroom => type 'U' or 'upload'\n"
+    next_task = input("- Upload new images in Digital Darkroom => type 'U' or 'upload'\n"
                      "- View your images stored in Digital Darkroom => type 'V' or 'view'\n"
                      "- Quit the program => type 'Q' or 'quit'\n").lower()
     
