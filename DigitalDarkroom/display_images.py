@@ -99,7 +99,7 @@ def save_image(edited_image, event_path):
                         " (P/Preview or S/Save or Q/Quit)\n").lower()
         print()
         if answer in ["p", "preview"]:
-            plt.imshow(image)
+            plt.imshow(edited_image)
             plt.show()
             
             # Ask for confirmation upon closing the preview window
