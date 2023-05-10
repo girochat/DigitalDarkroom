@@ -6,9 +6,6 @@ Functions
 get_event
     Function to get the path of a specific event chosen by the user.
     
-load_images
-    Function to load new images in an existing or new event.
-    
 update_view
     Function to get the current image in the stack during the image display. 
     Added as a public method to NavigationToolbar2.
@@ -79,29 +76,6 @@ def get_event():
             print("Error! Please enter one of the valid options as displayed...")
      
     return event
-
-def load_images():
-    """ Loads images from a given list of image filenames.
-    """
-    
-    # Ask user for a particular event to load images
-    path_event = get_event()
-    
-    # Get list of images in event
-    images_list = [image for image in os.listdir(path_event) if os.path.isfile(os.path.join(path_event, image))]
-    all_images = []
-    
-    # Load images from file
-    for image in images_list:
-        
-        # Handle the case where the file is not an image (=> use the df image_DB?)
-        try:
-            loaded_img = Image.open(os.path.join(path_event, image))
-            all_images.append(loaded_img)
-        except UnidentifiedImageError:
-            pass
-    
-    return all_images
 
 def save_image(edited_image, event_path):
     """ Allows to save an edited image in DigitalDarkroom.
