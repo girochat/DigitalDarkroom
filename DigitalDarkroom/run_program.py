@@ -31,15 +31,25 @@ while not quit:
                      "- View your images stored in Digital Darkroom => type 'V' or 'view'\n"
                      "- Edit an image stored in one of your event folders => type 'E' or 'edit'\n"
                      "- Quit the program => type 'Q' or 'quit'\n").lower()
+    print()
     
     if next_task in ["u", "upload"]:
-        imload.upload_images()
+        try:
+            imload.upload_images()
+        except SystemExit:
+            pass
         
     elif next_task in ["v", "view"]:
-        implay.display()
+        try:
+            implay.display()
+        except SystemExit:
+            pass
 
     elif next_task in ["e", "edit"]:
-        imedit.edit()
+        try:
+            imedit.edit()
+        except SystemExit:
+            pass
         
     elif next_task in ["q", "quit"]:
         quit = True

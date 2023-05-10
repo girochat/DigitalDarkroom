@@ -30,6 +30,8 @@ choose_file_type
 import os
 import shutil
 import glob
+import numpy as np
+import pandas as pd
 from extract_metadata import extract_metadata_upload
 
 class Event():
@@ -62,8 +64,10 @@ def create_event():
 
     # Ask user for information about event to create
     event_name = input("What is the name of the event?\n").strip()
+    print()
     event_description = input("Provide a short description of the event: "
                               "(Press enter to skip the description)\n").strip()
+    print()
 
     # Create event folder in DigitalDarkroom
     try:
@@ -79,6 +83,7 @@ def single_file(source, dest):
     """ Copies a single image to Digital Darkroom.
     """
     filename = input("Enter the filename of the image you would like to upload: (Q for Quit)\n")
+    print()
 
     if filename.lower() in ['q', "quit"]:
         print("You decided to stop the image upload.")
@@ -107,6 +112,7 @@ def choose_file_type(source, dest):
     input_message = input("What files would you like to upload? "
                           "Press enter and pick an option by entering the number "
                           "or typing the file extension. Press q to quit.")
+    print()
 
     if input_message.lower() == 'q':
         print("You decided to stop the image upload.")
@@ -121,6 +127,7 @@ def choose_file_type(source, dest):
         file_extension = '*.*'
     elif user_input == 'other' or user_input == str(len(options)):
         user_input = input("Enter the extension of the images you would like to add: ")
+        print()
         file_extension = '*.' + user_input
     elif user_input.isdigit():
         ending = options[int(user_input)-1]
@@ -142,45 +149,60 @@ def upload_images():
     # Ask for path to folder from which images will be uploaded
     upload_from = input("Where are the images you want to upload?\n"
                         "Please enter the full path from your home directory:"
-                        "(Example: Documents/Images/MyPhotos)\n")
+                        " (Example: Documents/Images/MyPhotos)\n")
+    print()
     upload_from = os.path.join(os.environ["HOME_PATH"], upload_from)
 
     # Quit function if path cannot be found
     if not os.path.exists(upload_from):
         print("Sorry, the provided path could not be found... Upload aborted.")
-        return
+        raise SystemExit
 
     # Ask the user if an event is to be created
     answer = False
     while not answer:
-        event_creation = input("Do you want to create an event for your images?"
-                               " (Y/Yes or N/No or Q/Quit) :\n").lower()
-        if event_creation in ["y", "yes"]:
+        event_creation = input("Do you want to create an event for your images"
+                               " or add them to an existing event?"
+                               " (C/Create or A/Add or N/No or Q/Quit) :\n").lower()
+        print()
+        if event_creation in ["c", "create"]:
             event = create_event()
-
             upload_to = event.path
             answer = True
+        elif event_creation in ["a", "add"]:
+            list_event = np.unique(pd.read_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))["Event"].dropna())
+            for event_name in list_event:
+                print(event_name)
+            event = input("To which event from the given list would you like to add images:\n")
+            print()
+            upload_to = os.path.join(os.environ["IMAGES_PATH"], event)
+            answer = True
+            if not os.path.exists(upload_to):
+                print("Sorry, the event was not found... \n")
+                answer = False
         elif event_creation in ["n", "no"]:
             answer = True
             upload_to = os.environ["IMAGES_PATH"]
         elif event_creation in ["q", "quit"]:
-            return
+            raise SystemExit
         else:
             print("Error! Please enter one of the valid options as displayed...")
 
     # Ask the user how to select images to upload
     answer = input("Would you like to add a single image or choose images based on file type? "
-                   "Press 1 for single image or" 
-                   "2 for selection based on file type: (Q for Quit)\n").lower() 
+                   "Press 1 for single image or " 
+                   "2 for selection based on file type: (Q/Quit)\n").lower()
+    print()
 
     while answer not in ["1", "2", "q", "quit"]:
         answer = input("The chosen option is not available."
                        "Press 1 for single image upload or 2 for upload based on extension: "
-                       "(Q for Quit)\n").lower()
+                       "(Q/Quit)\n").lower()
+        print()
 
     if answer in ['q', "quit"]:
         print("You decided to stop the image upload.")
-        return
+        raise SystemExit
     if int(answer) == 1:
         single_file(upload_from, upload_to)
     if int(answer) == 2:
