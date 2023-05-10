@@ -3,8 +3,8 @@ Module to display images from a local folder in DigitalDarkroom.
 
 Functions
 ---------
-get_event   
-    
+get_event
+    Returns the path of a specific event chosen by the user.
 load_images  
     
 update_view  
@@ -22,6 +22,7 @@ display
 """
 import os
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.cbook as cbk
 from matplotlib.backend_bases import NavigationToolbar2
@@ -34,22 +35,29 @@ def get_event():
     # Ask user to select an event to view images
     answer = False
     while not answer:
-        from_event = input("Would you like to view images of a specific event? (Y/Yes or N/No or Q/Quit) :\n").lower()
+        from_event = input("Would you like to view images of a specific event?"
+                           " (Y/Yes or N/No or Q/Quit) :\n").lower()
+        print()
         if from_event in ["y", "yes"]:
-            event = input("Enter the name of the event:\n")       # improvement : displaying the list of events in images DB?
-            while event not in os.listdir(os.environ["IMAGES_PATH"]):
-                event = input("Sorry, the event was not found... Try again: (Q for Quit)\n") 
-                if event.lower() in ["quit", 'q']:
-                    return
-            event = os.path.join(os.environ["IMAGES_PATH"], event)
-            answer = True
+            list_event = np.unique(pd.read_pickle(os.path.join(os.environ["PROGRAM_PATH"],"image_DB.pkl"))["Event"].dropna())
+            for event_name in list_event:
+                print(event_name)
+            event = input("Enter the name of the event from the given list:\n")
+            print()
             
+            # Handle the case where the event is not in the Images directory
+            if not event in os.listdir(os.environ["IMAGES_PATH"]):
+                print("Sorry, the event was not found... \n")
+            else:
+                event = os.path.join(os.environ["IMAGES_PATH"], event)
+                answer = True
+
         elif from_event in ["n", "no"]:
             answer = True
             event = os.environ["IMAGES_PATH"]
             
         elif from_event in ["q", "quit"]:
-            return
+            raise SystemExit
         else:
             print("Error! Please enter one of the valid options as displayed...")
      
@@ -101,14 +109,12 @@ def stack_back(self, *args, **kwargs):
     """
     self.image_stack.back()
     self.update_view()
-    #back(self, *args, **kwargs)
         
 def stack_forward(self, *args, **kwargs):
     """ Goes forward in the stack of image. Triggered by the dynamic toolbar.
     """
     self.image_stack.forward()
     self.update_view()
-    #forward(self, *args, **kwargs)
     
 def save_image(edited_image, event_path):
     """ Allows to save an edited image in DigitalDarkroom.
@@ -117,25 +123,30 @@ def save_image(edited_image, event_path):
     # Ask user for confirmation
     answer = False
     while not answer:
-        answer = input("You asked to save the edited image. Would you like to preview the changes"
+        answer = input("You asked to save the edited image."
+                       " Would you like to preview the changes"
                         " or directly save the edited image?"
-                        " (P for Preview or S for Save or Q for Quit)\n").lower()
+                        " (P/Preview or S/Save or Q/Quit)\n").lower()
+        print()
         if answer in ["p", "preview"]:
             plt.imshow(image)
             plt.show()
-            answer = input("Would you like to save the edited image? (S for Save or Q for Quit)\n").lower()
+            answer = input("Would you like to save the edited image?"
+                           " (S/Save or Q/Quit)\n").lower()
+            print()
             
         elif answer in ["s", "save"]:
             image_name = input("Enter the name for your edited image: "
                                "(Please specify the extension, ex: .jpg)\n")
+            print()
             try:
                 edited_image.save(os.path.join(event_path, image_name))
             except ValueError:
                 print("Error! The file extension is not valid. Saving aborted.")
-                return
+                raise SystemExit
             
         elif answer in ["q", "quit"]:
-            return
+            raise SystemExit
         else:
             print("Error! Please enter one of the valid options as displayed...")
             answer = False
@@ -154,11 +165,12 @@ def preview(edited_image, event_path):
     
     answer = False
     while not answer:
-        answer = input("Would you like to save the edited image? (S for Save or Q for Quit)\n").lower()
+        answer = input("Would you like to save the edited image? (S/Save or Q/Quit)\n").lower()
+        print()
         if answer in ["s", "save"]:
             save_image(edited_image, event_path)
         elif answer in ["q", "quit"]:
-            return
+            raise SystemExit
         else:
             print("Error! Please enter one of the valid options as displayed...")
             answer = False
