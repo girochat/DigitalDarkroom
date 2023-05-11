@@ -8,15 +8,15 @@ get_event
     
 update_view
     Function to get the current image in the stack during the image display. 
-    Added as a public method to NavigationToolbar2.
+    Added as a private method to NavigationToolbar2.
     
 stack_back
     Function to move back in the stack of images during the image display. 
-    Added as a public method to NavigationToolbar2.
+    Added as a private method to NavigationToolbar2.
 
 stack_forward
     Function to move forward in the stack of images during the image dispaly. 
-    Added as a public method to NavigationToolbar2.
+    Added as a private method to NavigationToolbar2.
 
 save_image
     Function to save an edited image.
@@ -25,12 +25,14 @@ preview
     Function to preview an edited image before saving the changes.
 
 display
-    Function to display the images of an event in a dynamic interface.
+    Function to choose the type of image display in the dynamic interface.
+    Display can be panorama or diaporama.
 
 display_diaporama
-
+    Function to display images of specific event in diaporama view.
+    
 display_panorama
-   
+    Function to display images of specific event in panorama view.
 """
 import os
 import numpy as np
@@ -79,6 +81,13 @@ def get_event():
 
 def save_image(edited_image, event_path):
     """ Allows to save an edited image in DigitalDarkroom.
+    
+    Parameters
+    ----------
+    edited_image : PIL.Image
+        the edited image to save
+    event_path : str
+        the path to event folder containing original image
     """
     
     # Ask user for confirmation
@@ -92,6 +101,8 @@ def save_image(edited_image, event_path):
         if answer in ["p", "preview"]:
             plt.imshow(image)
             plt.show()
+            
+            # Ask for confirmation upon closing the preview window
             answer = input("Would you like to save the edited image?"
                            " (S/Save or Q/Quit)\n").lower()
             print()
@@ -102,6 +113,7 @@ def save_image(edited_image, event_path):
             print()
             try:
                 edited_image.save(os.path.join(event_path, image_name))
+                answer = True
             except ValueError:
                 print("Error! The file extension is not valid. Saving aborted.")
                 raise SystemExit
@@ -119,7 +131,10 @@ def preview(edited_image, event_path):
     ----------
     edited_image : PIL.Image 
         the edited image to preview
+    event_path : str
+        the path to event folder containing original image
     """ 
+    
     plt.imshow(edited_image)
     plt.axis('off')
     plt.show()
@@ -203,6 +218,11 @@ def stack_forward(self, *args, **kwargs):
             
 def display_diaporama(images):
     """ Displays images in a diaporama using a dynamic interface.
+        
+    Parameters
+    ----------
+    images : list
+        the list of images to display in diaporama
     """
     # Personalise the toolbar by adding the stack of images
     image_stack = cbk.Stack()
@@ -219,7 +239,12 @@ def display_diaporama(images):
     plt.show()
     
 def display_panorama(images):
-    """ Displays images in a panorama using a dynamic interface. 
+    """ Displays images in a panorama using a dynamic interface.
+    
+    Parameters
+    ----------
+    images : list
+        the nested list with groups of images to display in panorama
     """
     # Fill the gaps such that the image list is a multiple of 15
     number_gaps = 15 - (len(images) % 15)
@@ -287,7 +312,6 @@ def display():
         if answer in ["d", "diaporama"]:
             NavigationToolbar2.view = "diaporama"
             display_diaporama(images)
-        
         elif answer in ["p", "panorama"]:
             NavigationToolbar2.view = "panorama"
             display_panorama(images)
