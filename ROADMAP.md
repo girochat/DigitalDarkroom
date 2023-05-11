@@ -48,9 +48,9 @@ Include for each task:
 
 | Tasks | Timeframe |
 |-----:|-----------|
-|     [Project management](#project-management)| April 27 :construction:| 
+|     [Project management](#project-management)| April 27 | 
 |     [Image Upload and Organization](#task-1-image-upload-and-organization)| May 4   |
-|     [Basic Image Editing](#task-2-basic-image-editing) | May 11   |
+|     [Basic Image Editing](#task-2-basic-image-editing) | May 11   :construction:|
 |     [Image Metadata and Analysis](#task-3-image-metadata-and-analysis)| May 18|
 |     [Minimum viable project](#minimum-viable-project) | May 25   |
 |     [Presentation](#presentation-of-our-project) | June 1   |
