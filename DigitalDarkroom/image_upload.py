@@ -1,90 +1,118 @@
 # To do
 # -----------------
-# change paths so that they work within the DigitalDarkroom folder / env. variables => Done.
 # improve function choose file type -> see comments
 # Include error handling, try-except
 # Make user interaction more friendly
 
+"""
+Module to upload images from a local folder into DigitalDarkroom.
+
+Classes
+-------
+Event
+    The event of a set of images.
+    
+Functions
+---------
+upload_images
+    Function to upload images in DigitalDarkroom.
+
+create_event
+    Function to create an Event folder in DigitalDarkroom.
+    
+single_file
+    Function to select a single image only to upload.
+    
+choose_file_type
+    Function to select a multiple images to upload using file extensions.
+"""
+
 import os
 import shutil
 import glob
-from extract_metadata import extract_metadata_upload
+import numpy as np
 import pandas as pd
+from extract_metadata import extract_metadata_upload
 
-#############################################
-# create folder for event
-#############################################
-def create_event_folder():
-    """ Creates an event folder for the images to upload.
-    """
-    name_eventfolder = input("Would you like to name the event folder? Press Y or N\n")
-    if name_eventfolder.lower() == "y":
-        name_eventfolder = input("Enter a name: ")
-        path_to_eventfolder = os.path.join(os.environ["IMAGES_PATH"], name_eventfolder) 
-        if not os.path.exists(path_to_eventfolder):
-            os.makedirs(path_to_eventfolder)
-            print("Your folder has been created")
-        dest = path_to_eventfolder
-    else:
-        print("Lets continue then") # folders will be uploaded into Images  # What happens if no event name? Could we have a miscellaneous folder for no named event? 
-        dest = ""
-    return dest
-
-
-################
-# upload images 
-################
-
-
-def upload_type(source, dest):
-    """ Asks the user what kind of image upload is requested
-    """
-    answer = input("Would you like to add a single image or choose images based on file type? Press 1 for single image, 2 for selection based on file type or q to quit. ")
-    while answer not in ["1", "2", "q"]:
-        answer = input("The chosen option is not available. Press 1 for single image upload, 2 for upload based on extension or q to quit. ")
+class Event():
+    """ The Event class that corresponds to a set of images.
     
-    if answer.lower() == 'q':
-            print("You decided to stop the image upload.")
-            return
-    if int(answer) == 1:
-        single_file(source, dest)
-        
-    if int(answer) == 2:
-        choose_file_type(source, dest)
+    Attributes:
+    -----------
+    name
+        Name of the event.
+    description 
+        The description of the event.
+    path
+        The file path to the event in DigitalDarkroom.
     
+    """
+
+    def __init__(self, name = "", description = ""):
+        self.name = name
+        self.description = description
+        if self.name != "":
+            self.path = os.path.join(os.environ["IMAGES_PATH"], self.name)
+        else:
+            self.path = None
+        print("Your event has been created!\n")
+
+
+def create_event():
+    """ Creates an Event instance for the images that are uploaded.
+    """
+
+    # Ask user for information about event to create
+    event_name = input("What is the name of the event?\n").strip()
+    print()
+    event_description = input("Provide a short description of the event: "
+                              "(Press enter to skip the description)\n").strip()
+    print()
+
+    # Create event folder in DigitalDarkroom
+    try:
+        event_path = os.path.join(os.environ["IMAGES_PATH"], event_name)
+        if not os.path.exists(event_path):
+            os.makedirs(event_path)
+    except Exception:
+        print("Error! You must enter a valid name to create the event folder...")
+
+    return Event(name = event_name, description = event_description)
+
 def single_file(source, dest):
     """ Copies a single image to Digital Darkroom.
     """
-    filename = input("Enter the name of the file you would like to upload or press q to quit. ")
-    
-    if filename.lower() == 'q':
+    filename = input("Enter the filename of the image you would like to upload: (Q for Quit)\n")
+    print()
+
+    if filename.lower() in ['q', "quit"]:
         print("You decided to stop the image upload.")
         return
     path_to_file = os.path.join(source, filename)
-    if os.path.isfile(path_to_file): # check if results are files
+
+    # Check if results are files
+    if os.path.isfile(path_to_file):
         shutil.copy(path_to_file, dest)
+        print("Image has been copied!\n")
     else:
         print("Sorry, the image could not be found... Upload aborted.")
         return
 
 
-
-#################################################
-#different file formats (options to select from) 
-##################################################      
 # if user is in folder with his images, ask the user for file extension
-# copy all images in folder with specific file ending -> which file endings should be available? 
+# copy all images in folder with specific file ending -> which file endings should be available?
 # Issue: Select all extensions will also import text files (needs to be changed) -> Done
 # Question: use select or switch instead? Or let user just enter one or several extensions?
 # Add option to add a list of images?
-
-
 def choose_file_type(source, dest):
     """ Copies an entire list of images based on the image extension to Digital Darkroom.
     """
-    options = ["all", "png", "jpg", "jpeg", "cr2", "nef", "tif", "bmp", "other"] # need to be adjusted -> should user be able to type ending?
+    options = ["all", "png", "jpg", "jpeg", "cr2", "nef", "tif", "bmp", "other"]
     user_input = ''
-    input_message = input("What files would you like to upload? Press enter and pick an option by entering the number or typing the file extension. Press q to quit.")
+    input_message = input("What files would you like to upload? "
+                          "Press enter and pick an option by entering the number "
+                          "or typing the file extension. Press q to quit.")
+    print()
 
     if input_message.lower() == 'q':
         print("You decided to stop the image upload.")
@@ -92,12 +120,14 @@ def choose_file_type(source, dest):
 
     for index, item in enumerate(options):
         input_message += f'{index+1}) {item}\n'
-    while (user_input not in options) and (user_input not in [str(i) for i in range(1, len(options) + 1)]):
+        index_list = [str(i) for i in range(1, len(options) + 1)]
+    while (user_input not in options) and (user_input not in index_list):
         user_input = input(input_message)
-    if user_input == 'all' or user_input == "1":
+    if user_input in ["all", "1"]:
         file_extension = '*.*'
     elif user_input == 'other' or user_input == str(len(options)):
         user_input = input("Enter the extension of the images you would like to add: ")
+        print()
         file_extension = '*.' + user_input
     elif user_input.isdigit():
         ending = options[int(user_input)-1]
@@ -105,37 +135,75 @@ def choose_file_type(source, dest):
     else:
         file_extension = '*.' + user_input
 
-    for full_file_name in glob.glob(os.path.join(source, file_extension)): # copy the whole tree (with subdirs etc), use or glob.glob("path/to/dir/*.*") to get a list of all the filenames
+    for full_file_name in glob.glob(os.path.join(source, file_extension)):
+        # copy whole tree (with subdirs), glob.glob("path/to/dir/*.*") to get list of all filenames
         file_name = os.path.basename(full_file_name)
         if os.path.isfile(full_file_name): # check if results are files
             extract_metadata_upload(full_file_name, dest, file_name)
-    print("Files have been copied")
+    print("Images have been copied!\n")
 
 def upload_images():
     """ Uploads images from specified folder by the user in Digital Darkroom.
     """
 
-    # Ask for path to folder where images are to be uploaded 
-    path_for_upload = input("Where are the images you want to upload?\n" 
-                            "Please enter the full path from your home directory: (Example: Documents/Images/MyPhotos)\n")
-    path_for_upload = os.path.join(os.environ["HOME_PATH"], path_for_upload) # folder with images that should be uploaded
+    # Ask for path to folder from which images will be uploaded
+    upload_from = input("Where are the images you want to upload?\n"
+                        "Please enter the full path from your home directory:"
+                        " (Example: Documents/Images/MyPhotos)\n")
+    print()
+    upload_from = os.path.join(os.environ["HOME_PATH"], upload_from)
 
     # Quit function if path cannot be found
-    if not os.path.exists(path_for_upload):
-        print("Sorry, the provided path could not be found...")
+    if not os.path.exists(upload_from):
+        print("Sorry, the provided path could not be found... Upload aborted.")
+        raise SystemExit
 
-    path_to_event_folder = create_event_folder()
-    
+    # Ask the user if an event is to be created
+    answer = False
+    while not answer:
+        event_creation = input("Do you want to create an event for your images"
+                               " or add them to an existing event?"
+                               " (C/Create or A/Add or N/No or Q/Quit) :\n").lower()
+        print()
+        if event_creation in ["c", "create"]:
+            event = create_event()
+            upload_to = event.path
+            answer = True
+        elif event_creation in ["a", "add"]:
+            list_event = np.unique(pd.read_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))["Event"].dropna())
+            for event_name in list_event:
+                print(event_name)
+            event = input("To which event from the given list would you like to add images:\n")
+            print()
+            upload_to = os.path.join(os.environ["IMAGES_PATH"], event)
+            answer = True
+            if not os.path.exists(upload_to):
+                print("Sorry, the event was not found... \n")
+                answer = False
+        elif event_creation in ["n", "no"]:
+            answer = True
+            upload_to = os.environ["IMAGES_PATH"]
+        elif event_creation in ["q", "quit"]:
+            raise SystemExit
+        else:
+            print("Error! Please enter one of the valid options as displayed...")
 
-    upload_type(source = path_for_upload, dest = path_to_event_folder)
+    # Ask the user how to select images to upload
+    answer = input("Would you like to add a single image or choose images based on file type? "
+                   "Press 1 for single image or " 
+                   "2 for selection based on file type: (Q/Quit)\n").lower()
+    print()
 
+    while answer not in ["1", "2", "q", "quit"]:
+        answer = input("The chosen option is not available."
+                       "Press 1 for single image upload or 2 for upload based on extension: "
+                       "(Q/Quit)\n").lower()
+        print()
 
-"""
-path_to_event_folder = os.path.join(os.getcwd(), "DigitalDarkroom/Images/test/")   # add path to folder with images -> needs to be changed
-path_to_program = os.path.join(os.getcwd(), "DigitalDarkroom/")
-path_for_upload = os.path.join(os.getcwd(), "gallery/")
-upload_type(path_for_upload, path_to_event_folder)  
-image_DB = pd.read_pickle(os.path.join(path_to_program,"image_DB.pkl"))
-print(image_DB)
-
-"""
+    if answer in ['q', "quit"]:
+        print("You decided to stop the image upload.")
+        raise SystemExit
+    if int(answer) == 1:
+        single_file(upload_from, upload_to)
+    if int(answer) == 2:
+        choose_file_type(upload_from, upload_to)
