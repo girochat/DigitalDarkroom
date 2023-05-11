@@ -16,8 +16,8 @@ Here you'll find important documentation about the project. If you have suggesti
 
 [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct/) : please check this code of conduct. It might seem a formality but it is important to us that certain core and universal principles are respected between collaborators. 
 
-[LICENSE](https://www.gnu.org/licenses/gpl-3.0.en.html) :page_facing_up:
-[LICENSE](https://creativecommons.org/licenses/by-sa/4.0/legalcode) :page_facing_up:
+[GPLv3 LICENSE](https://www.gnu.org/licenses/gpl-3.0.en.html) :page_facing_up:
+[CC LICENSE](https://creativecommons.org/licenses/by-sa/4.0/legalcode) :page_facing_up:
 
 ## How can I contribute?
 
