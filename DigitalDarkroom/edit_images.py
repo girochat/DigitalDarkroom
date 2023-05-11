@@ -18,11 +18,13 @@ def select_image():
     image_selected = False
     while not image_selected:
 
-        # Ask user to select an event    (=> used the get_event function in display_images, too much dependency?)
+        # Ask user to select an event    (=> can be skipped by using the display function (already asks for event... and the
+        #                                  event path can be retrieved with the DB?)
         event_path = implay.get_event()
-        if event_path == "":  # => improvement : how to return to run_program directly from get_event in display_images.py?
-            return
-
+        
+        # Display image to the user to select an image  => use the number of the panorama display or display list of image names?
+        #implay.display()
+        
         # Ask user for name of the image
         image = input("Please enter the full name of the image you would like to edit "
                       "or press 'q'.\n")
