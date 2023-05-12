@@ -8,7 +8,8 @@ Some simple functions for plotting -> testing out options
 Open Questions:
 When should the user be asked if coordinates should be added? 
 Make function more flexible to allow user input of multiple images?
-How should the plots be generated?
+How should the plots be generated? Plotly?
+How can the maps be centered?
 """
 
 
