@@ -1,4 +1,6 @@
 import os
+import pandas as pd
+import config
 import image_upload as imload 
 import display_images as implay
 import edit_images as imedit
@@ -59,6 +61,9 @@ while not quit:
             print(font.renderText('Bye, Bye!\n'))
         else:
             print("Bye, Bye!\n\n")
+        
+        # Save the image DB
+        config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
 
     else:
         print("Error! Please enter one of the valid options as displayed...")
