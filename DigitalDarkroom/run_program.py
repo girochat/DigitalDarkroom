@@ -4,7 +4,7 @@ import config
 import image_upload as imload 
 import display_images as implay
 import edit_images as imedit
-import organize as imchange
+import organise_images as imchange
 # Define constant global variables for program paths
 os.environ["PROGRAM_PATH"] = os.path.dirname(os.path.realpath(__file__))  
 os.environ["IMAGES_PATH"] = os.path.join(os.environ["PROGRAM_PATH"], "Images")
