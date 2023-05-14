@@ -97,5 +97,3 @@ while not quit:
 
     else:
         print("Error! Please enter one of the valid options as displayed...")
-        
-  
