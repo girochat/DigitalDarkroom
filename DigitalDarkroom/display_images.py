@@ -35,6 +35,7 @@ display_panorama
     Function to display images of specific event in panorama view.
 """
 import os
+import config
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -42,8 +43,14 @@ import matplotlib.cbook as cbk
 from matplotlib.backend_bases import NavigationToolbar2
 from PIL import Image, UnidentifiedImageError
 
+
 def get_event():
     """ Prompts the user to enter the event from which images will be displayed.
+    
+    Returns
+    -------
+    event : str
+        the absolute path to the event or to Images if no event specified.
     """
     
     # Ask user to select an event to view images
@@ -55,22 +62,22 @@ def get_event():
         if from_event in ["y", "yes"]:
             
             # Display the list of available events
-            list_event = np.unique(pd.read_pickle(os.path.join(os.environ["PROGRAM_PATH"],"image_DB.pkl"))["Event"].dropna())
+            list_event = np.unique(config.DB["Event"].dropna())
             for event_name in list_event:
                 print(event_name)
             event = input("Enter the name of the event from the given list:\n")
             print()
             
             # Handle the case where the event is not in the Images directory
-            if not event in os.listdir(os.environ["IMAGES_PATH"]):
+            if not event in os.listdir(config.images_path):
                 print("Sorry, the event was not found... \n")
             else:
-                event = os.path.join(os.environ["IMAGES_PATH"], event)
+                event = os.path.join(config.images_path, event)
                 answer = True
 
         elif from_event in ["n", "no"]:
             answer = True
-            event = os.environ["IMAGES_PATH"]
+            event = config.images_path
             
         elif from_event in ["q", "quit"]:
             raise SystemExit
@@ -181,7 +188,7 @@ def update_view(self):
                     
                     # Handle the case where the filepath is not an image 
                     try:
-                        image = Image.open(os.path.join(NavigationToolbar2.event, image))
+                        image = Image.open(os.path.join(config.images_path, config.DB.loc[image, "Event"], image))
                         height = int(image.size[0] / 4)
                         width = int(image.size[1] / 4)
                         axes[i, j].imshow(image.resize((height, width)))
@@ -195,7 +202,7 @@ def update_view(self):
         else:
             plt.close()
             try:
-                image = Image.open(os.path.join(NavigationToolbar2.event, current))
+                image = Image.open(os.path.join(config.images_path, config.DB.loc[current, "Event"], current))
                 height = int(image.size[0] / 4)
                 width = int(image.size[1] / 4)
                 plt.imshow(image.resize((height, width)))
@@ -215,6 +222,18 @@ def stack_forward(self, *args, **kwargs):
     """
     self.image_stack.forward()
     self.update_view()
+
+def set_toolbar():
+    """ Adds personalised method to the NavigationToolbar2 class for the image display.
+    """
+    # Personalise the toolbar by adding a viewing method and keeping track of the current event
+    NavigationToolbar2.update_view = update_view
+    
+    # Override the toolbar functions 'back' and 'forward' to move in the image stack
+    original_back = NavigationToolbar2.back
+    NavigationToolbar2.back = stack_back
+    original_forward = NavigationToolbar2.forward
+    NavigationToolbar2.forward = stack_forward
             
 def display_diaporama(images):
     """ Displays images in a diaporama using a dynamic interface.
@@ -224,6 +243,9 @@ def display_diaporama(images):
     images : list
         the list of images to display in diaporama
     """
+    set_toolbar()
+    NavigationToolbar2.view = "diaporama"
+    
     # Personalise the toolbar by adding the stack of images
     image_stack = cbk.Stack()
     image_stack._elements = images
@@ -231,7 +253,7 @@ def display_diaporama(images):
     NavigationToolbar2.image_stack = image_stack
 
     # Start the image display
-    image = Image.open(os.path.join(NavigationToolbar2.event, images[0])) 
+    image = Image.open(os.path.join(config.images_path, config.DB.loc[images[0], "Event"], images[0])) 
     height = int(image.size[0] / 4)
     width = int(image.size[1] / 4)
     plt.imshow(image.resize((height, width)))
@@ -246,6 +268,9 @@ def display_panorama(images):
     images : list
         the nested list with groups of images to display in panorama
     """
+    set_toolbar()
+    NavigationToolbar2.view = "panorama"
+    
     # Fill the gaps such that the image list is a multiple of 15
     number_gaps = 15 - (len(images) % 15)
     
@@ -271,7 +296,7 @@ def display_panorama(images):
             axes[i, j].imshow(empty_image)
         else:
             try:
-                image = Image.open(os.path.join(NavigationToolbar2.event, image))
+                image = Image.open(os.path.join(config.images_path, config.DB.loc[image, "Event"], image))
                 height = int(image.size[0] / 4)
                 width = int(image.size[1] / 4)
                 axes[i, j].imshow(image.resize((height, width)))
@@ -287,7 +312,7 @@ def display():
     answer = input("Would you like to view the images in a diaporama or panorama?"
                    " (D/Diaporama or P/Panorama or Q/Quit):\n").lower()
     print()
-    
+
     if answer in ["q", "quit"]:
         raise SystemExit
     else:
@@ -295,27 +320,12 @@ def display():
         # Load images to display
         event_path = get_event()
         event = os.path.basename(event_path)
-        event_DB = pd.read_pickle(os.path.join(os.environ["PROGRAM_PATH"],"image_DB.pkl"))["Event"]
-        images = list(pd.Series(event_DB[event_DB == event].index))
-        
-        # Personalise the toolbar by adding a viewing method and keeping track of the current event
-        NavigationToolbar2.update_view = update_view
-        NavigationToolbar2.event = event_path
-        
-        # Override the toolbar functions 'back' and 'forward' to move in the image stack
-        original_back = NavigationToolbar2.back
-        NavigationToolbar2.back = stack_back
-        original_forward = NavigationToolbar2.forward
-        NavigationToolbar2.forward = stack_forward
+        images = list(config.DB["Event"].index)
         
         # Launch the appropriate display
         if answer in ["d", "diaporama"]:
-            NavigationToolbar2.view = "diaporama"
             display_diaporama(images)
         elif answer in ["p", "panorama"]:
-            NavigationToolbar2.view = "panorama"
             display_panorama(images)
-            
-        # Re-implement default toolbar functions
-        NavigationToolbar2.back = original_back
-        NavigationToolbar2.forward = original_forward
+        else:
+            print("Error! Please enter one of the valid options as displayed...")
