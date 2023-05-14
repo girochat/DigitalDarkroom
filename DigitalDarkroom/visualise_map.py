@@ -20,23 +20,33 @@ def select_images(pick_event):
     plt.close()
     images = list(config.DB.iloc[pick_event.ind, :].index)
     
-    # Launch diaporama of these images
-    implay.display_diaporama(images)
+    # Launch image diaporama if right click 
+    if pick_event.mouseevent.button == 1:
+        implay.display_diaporama(images)
+    
+    # Launch image panorama if left click
+    elif pick_event.mouseevent.button == 3:
+        implay.display_panorama(images)
 
-# Initialise figure
-figure, axis = plt.subplots()
+def plot_locations():
+    """ Plot image locations on world map.
+    """
+    # Initialise figure
+    figure, axis = plt.subplots()
 
-# Plot the world map
-world_map = gpd.read_file('worldmap.shp')
-world_map.plot(ax = axis) 
+    # Plot the world map
+    world_map = gpd.read_file('worldmap.shp')
+    world_map.plot(ax = axis, column = 'LABEL_Y', cmap = "viridis")
+    axis.set_axis_off()
 
-# Create geopandas dataframe
-#locations = gpd.GeoSeries([Point(image_DB.loc[image, "Latitude"], image_DB.loc[image, "Longitude"]) for image in image_DB.index])  # have to create a GeoSeries whereas it's already created when calling for geodata... Should we create a geopandas df for image_DB?
+    # Create geopandas dataframe
+    #locations = gpd.GeoSeries([Point(image_DB.loc[image, "Latitude"], image_DB.loc[image, "Longitude"]) for image in image_DB.index])
 
-# Plot image locations
-locations = config.DB["Event"]                      # just to test, normally it's the locations in image_DB.pkl
-geodata_locations = gpd.tools.geocode(locations)    # just to test, normally it's the locations in image_DB.pkl
-
-geodata_locations.plot(ax = axis, color = "red", picker = True)
-plt.connect(s = "pick_event", func = select_images)
-plt.show()
+    # Plot image locations
+    #locations = config.DB["Event"]                      # just to test, normally it's the locations in image_DB.pkl
+    #geodata_locations = gpd.tools.geocode(locations)    # just to test, normally it's the locations in image_DB.pkl
+    #geodata_locations.to_file("temp.shp")
+    geodata_locations = gpd.GeoDataFrame.from_file("temp.shp")
+    geodata_locations.plot(ax = axis, color = "red", picker = True)
+    plt.connect(s = "pick_event", func = select_images)
+    plt.show()
