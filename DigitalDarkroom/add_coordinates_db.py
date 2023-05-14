@@ -14,6 +14,7 @@ How can the maps be centered?
 
 
 import os
+import config
 from datetime import date
 from geopy.geocoders import Nominatim
 import pandas as pd
@@ -124,9 +125,17 @@ if __name__ == "__main__":
 
     os.environ["PROGRAM_PATH"] = os.getcwd() # for local use only
     image_db = pd.read_pickle(os.path.join(os.environ["PROGRAM_PATH"],"image_DB.pkl"))
+    print(image_db)
+
+
+    
+    """
 
     df = pd.DataFrame(columns = ["Latitude", "Longitude", "Location"]) # will be added directly to database -> change this in extract_metadata
     image_db = pd.concat([image_db, df]) # not necessary once database has been updated
+    print(image_db)
+
+    image_db.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
 
 
     # run functions as test
@@ -144,3 +153,6 @@ if __name__ == "__main__":
                         center = {"lat":image_db.Latitude[0], "lon": image_db.Longitude[0]}) # need to have a look at correct centering of the plot 
     fig.update_layout(mapbox_style="open-street-map") 
     fig.show()
+
+
+    """
