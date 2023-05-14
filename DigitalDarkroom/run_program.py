@@ -4,7 +4,7 @@ import config
 import image_upload as imload 
 import display_images as implay
 import edit_images as imedit
-
+import organize as imchange
 # Define constant global variables for program paths
 os.environ["PROGRAM_PATH"] = os.path.dirname(os.path.realpath(__file__))  
 os.environ["IMAGES_PATH"] = os.path.join(os.environ["PROGRAM_PATH"], "Images")
@@ -32,6 +32,9 @@ while not quit:
     next_task = input("- Upload new images in Digital Darkroom => type 'U' or 'upload'\n"
                      "- View your images stored in Digital Darkroom => type 'V' or 'view'\n"
                      "- Edit an image stored in one of your event folders => type 'E' or 'edit'\n"
+                     "- Change information of an event or image => type 'C' or 'change'\n"
+                     "- Display the locations on a map => type 'M' or 'map'\n"
+                     "- Delete events or images => type 'D' or 'delete'\n"
                      "- Quit the program => type 'Q' or 'quit'\n").lower()
     print()
     
@@ -50,6 +53,24 @@ while not quit:
     elif next_task in ["e", "edit"]:
         try:
             imedit.edit()
+        except SystemExit:
+            pass
+
+    elif next_task in ["c", "change"]:
+        try:
+            imchange.change_info()
+        except SystemExit:
+            pass
+
+    elif next_task in ["m", "map"]:
+        try:
+            pass
+        except SystemExit:
+            pass
+
+    elif next_task in ["d", "delete"]:
+        try:
+            imchange.delete()
         except SystemExit:
             pass
         
