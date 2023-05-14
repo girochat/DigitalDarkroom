@@ -29,11 +29,13 @@ choose_file_type
 
 import os
 import shutil
+import config
 import glob
 import config
 import numpy as np
 import pandas as pd
-from extract_metadata import extract_metadata_upload
+#from extract_metadata import extract_metadata_upload
+from organize import (add_geo_event, add_geo_image, extract_metadata_upload)
 
 class Event():
     """ The Event class that corresponds to a set of images.
@@ -98,8 +100,11 @@ def single_file(source, dest):
 
     # Check if results are files
     if os.path.isfile(path_to_file):
-        shutil.copy(path_to_file, dest)
+        #shutil.copy(path_to_file, dest)
+        extract_metadata_upload(path_to_file, dest, filename)
         print("Image has been copied!\n")
+        add_geo_image(filename)
+        
     else:
         print("Sorry, the image could not be found... Upload aborted.")
         raise SystemExit
@@ -143,6 +148,7 @@ def choose_file_type(source, dest):
             extract_metadata_upload(full_file_name, dest, file_name)
     
     print("Images have been copied!\n")
+    
 
 def upload_images():
     """ Uploads images from specified folder by the user in Digital Darkroom.
@@ -170,10 +176,12 @@ def upload_images():
         
         if event_creation in ["c", "create"]:
             event = create_event()
+            creation = True
             upload_to = event.path
             answer = True
             
         elif event_creation in ["a", "add"]:
+            creation = False
             
             # Display list of available events
             list_event = np.unique(config.DB["Event"].dropna())
@@ -201,9 +209,10 @@ def upload_images():
             print("Error! Please enter one of the valid options as displayed...")
 
     # Ask the user how to select images to upload
-    answer = input("Would you like to add a single image or choose images based on file type? "
-                   "Press 1 for single image or " 
-                   "2 for selection based on file type: (Q/Quit)\n").lower()
+    answer = input("Would you like to add a single image or choose images based on file type?\n"
+                   "- Single image => type 1\n" 
+                   "- Selection based on file type => type 2\n"
+                   "- To quit => type 'Q' or 'quit')\n").lower()
     print()
 
     while answer not in ["1", "2", "q", "quit"]:
@@ -219,3 +228,5 @@ def upload_images():
         single_file(upload_from, upload_to)
     if int(answer) == 2:
         choose_file_type(upload_from, upload_to)
+        if creation:
+            add_geo_event(event)
