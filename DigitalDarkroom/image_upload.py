@@ -117,22 +117,23 @@ def choose_file_type(source, dest):
     index_list = [str(i) for i in range(1, len(options) + 1)]
     extensions_display = "\n".join([f'{index+1}) {item}' for index, item in enumerate(options)])
     
-    # Display possible extensions to the user
+    # Upload images from local folder to DigitalDarkroom
     answer = False
     while (answer not in options) and (answer not in index_list):
+        
+        # Display possible extensions to the user     
         print(extensions_display)
         answer = input("What files would you like to upload? "
                        "Pick an option by entering the number "
                        "or typing the file extension: (Q/Quit)\n").lower()
         print()
 
-
         if answer in ['q', "quit"]:
             raise SystemExit
         elif answer in ["all", "1"]:
             file_extension = '*.*'
         elif answer == 'other' or answer == str(len(options)):
-            user_input = input("Enter the extension of the images you would like to add: ")
+            user_input = input("Enter the extension of the images you would like to add:\n")
             print()
             file_extension = '*.' + user_input
         elif answer.isdigit():
@@ -140,20 +141,26 @@ def choose_file_type(source, dest):
             file_extension = '*.' + ending
         else:
             file_extension = '*.' + answer
-        
-        add_location = input("Would you like to add a location to the files? Type Y or N.\n").lower()
+    
+        # Add locations to uploaded images
+        add_location = input("Would you like to add a location"
+                             " to the files? (Y/Yes or N/No)\n").lower()
         print()
         ans_geo = False
         ans_single = False
         coords_group = None
+        
+        # Define location for each individual images or whole group
         if add_location in ["y", "yes"]:
             ans_geo = True
-            answer_single = input("Would you like to add the location for each image individually? Type Y or N.\n")
+            answer_single = input("Would you like to add the location"
+                                  " for each image individually? (Y/Yes or N/No)\n").lower()
+
             print()
             if answer_single in ["y", "yes"]:
                 ans_single = True
             if answer_single in ["n", "no"]:
-                group_location = input("Enter the location which should be added to the images.\n")
+                group_location = input("Enter the location which should be added to the images:\n")
                 print()
                 coords_group = get_coords(group_location)
 
@@ -165,8 +172,7 @@ def choose_file_type(source, dest):
         if os.path.isfile(full_file_name): 
             extract_metadata_upload(full_file_name, dest, file_name, add_geo = ans_geo, single = ans_single, coords = coords_group)
 
-    print("Images have been copied!\n")
-    
+    print("Images have been copied!\n") 
 
 def upload_images():
     """ Uploads images from specified folder by the user in Digital Darkroom.
@@ -198,7 +204,7 @@ def upload_images():
             
         elif event_creation in ["a", "add"]:
             creation = False
-            
+     
             # Display list of available events
             list_event = np.unique(config.DB["Event"].dropna())
             for event_name in list_event:
