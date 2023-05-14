@@ -5,6 +5,7 @@ import image_upload as imload
 import display_images as implay
 import edit_images as imedit
 import visualise_map as immap
+import organise_images as imchange
 
 # Define constant global variables for program paths
 os.environ["PROGRAM_PATH"] = os.path.dirname(os.path.realpath(__file__))  
@@ -34,6 +35,9 @@ while not quit:
                      "- View your images stored in Digital Darkroom => type 'V' or 'view'\n"
                      "- Edit an image stored in one of your event folders => type 'E' or 'edit'\n"
                      "- Locate your images on the world map => type 'M' or 'map''\n"
+                     "- Change information of an event or image => type 'C' or 'change'\n"
+                     "- Display the locations on a map => type 'M' or 'map'\n"
+                     "- Delete events or images => type 'D' or 'delete'\n"
                      "- Quit the program => type 'Q' or 'quit'\n").lower()
     print()
     
@@ -58,6 +62,24 @@ while not quit:
     elif next_task in ["m", "map"]:
         try:
             immap.plot_locations()
+        except SystemExit:
+            pass
+
+    elif next_task in ["c", "change"]:
+        try:
+            imchange.change_info()
+        except SystemExit:
+            pass
+
+    elif next_task in ["m", "map"]:
+        try:
+            pass
+        except SystemExit:
+            pass
+
+    elif next_task in ["d", "delete"]:
+        try:
+            imchange.delete()
         except SystemExit:
             pass
         
