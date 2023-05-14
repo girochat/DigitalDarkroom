@@ -189,8 +189,8 @@ def update_view(self):
                     # Handle the case where the filepath is not an image 
                     try:
                         image = Image.open(os.path.join(config.images_path, config.DB.loc[image, "Event"], image))
-                        height = int(image.size[0] / 4)
-                        width = int(image.size[1] / 4)
+                        height = int(image.size[0] / 20)
+                        width = int(image.size[1] / 20)
                         axes[i, j].imshow(image.resize((height, width)))
                         axes[i, j].set_title(f"Image number = {index + 15 * self.image_stack._pos}", fontsize=7)
                     except UnidentifiedImageError:
@@ -297,8 +297,8 @@ def display_panorama(images):
         else:
             try:
                 image = Image.open(os.path.join(config.images_path, config.DB.loc[image, "Event"], image))
-                height = int(image.size[0] / 4)
-                width = int(image.size[1] / 4)
+                height = int(image.size[0] / 20)
+                width = int(image.size[1] / 20)
                 axes[i, j].imshow(image.resize((height, width)))
                 axes[i, j].set_title(f"Image number = {index}", fontsize=7)
             except UnidentifiedImageError:
@@ -309,23 +309,28 @@ def display_panorama(images):
 def display():
     """ Asks the user if the display must be a diaporama or panorama and launches the display. 
     """
-    answer = input("Would you like to view the images in a diaporama or panorama?"
+    
+    answer = False
+    while not answer:
+        answer = input("Would you like to view the images in a diaporama or panorama?"
                    " (D/Diaporama or P/Panorama or Q/Quit):\n").lower()
-    print()
+        print()
+        
+        if answer in ["q", "quit"]:
+            raise SystemExit
+        elif answer in ["d", "diaporama", "p", "panorama"]:
 
-    if answer in ["q", "quit"]:
-        raise SystemExit
-    else:
-        
-        # Load images to display
-        event_path = get_event()
-        event = os.path.basename(event_path)
-        images = list(config.DB["Event"].index)
-        
-        # Launch the appropriate display
-        if answer in ["d", "diaporama"]:
-            display_diaporama(images)
-        elif answer in ["p", "panorama"]:
-            display_panorama(images)
+            # Load images to display
+            event_path = get_event()
+            event = os.path.basename(event_path)
+            images = list(config.DB["Event"].index)
+
+            # Launch the appropriate display
+            if answer in ["d", "diaporama"]:
+                display_diaporama(images)
+            else:
+                display_panorama(images)
+
         else:
             print("Error! Please enter one of the valid options as displayed...")
+            answer = False
