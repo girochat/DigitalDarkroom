@@ -163,3 +163,4 @@ def get_exifdata(path_to_event_folder, img):
             if key in ExifTags.TAGS:
                 print(f'{ExifTags.TAGS[key]}:{val}')
     return exifdata
+
