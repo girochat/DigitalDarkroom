@@ -284,38 +284,47 @@ def display_panorama(images):
 def display():
     """ Asks the user if the display must be a diaporama or panorama and launches the display. 
     """
-    answer = input("Would you like to view the images in a diaporama or panorama?"
-                   " (D/Diaporama or P/Panorama or Q/Quit):\n").lower()
-    print()
     
-    if answer in ["q", "quit"]:
+    # Launch either diaporama or panorama display
+    answer = False
+    while not answer:
+        answer = input("Would you like to view the images in a diaporama or panorama?"
+                       " (D/Diaporama or P/Panorama or Q/Quit):\n").lower()
+        print()
+        
+        if answer in ["q", "quit"]:
         raise SystemExit
-    else:
         
-        # Load images to display
-        event_path = get_event()
-        event = os.path.basename(event_path)
-        event_DB = pd.read_pickle(os.path.join(os.environ["PROGRAM_PATH"],"image_DB.pkl"))["Event"]
-        images = list(pd.Series(event_DB[event_DB == event].index))
+        elif answer in ["d", "diaporama", "p", "panorama"]:
         
-        # Personalise the toolbar by adding a viewing method and keeping track of the current event
-        NavigationToolbar2.update_view = update_view
-        NavigationToolbar2.event = event_path
+            # Load images to display
+            event_path = get_event()
+            event = os.path.basename(event_path)
+            event_DB = pd.read_pickle(os.path.join(os.environ["PROGRAM_PATH"],"image_DB.pkl"))["Event"]
+            images = list(pd.Series(event_DB[event_DB == event].index))
+
+            # Personalise the toolbar by adding a viewing method and keeping track of the current event
+            NavigationToolbar2.update_view = update_view
+            NavigationToolbar2.event = event_path
+
+            # Override the toolbar functions 'back' and 'forward' to move in the image stack
+            original_back = NavigationToolbar2.back
+            NavigationToolbar2.back = stack_back
+            original_forward = NavigationToolbar2.forward
+            NavigationToolbar2.forward = stack_forward
+
+            # Launch the appropriate display
+            if answer in ["d", "diaporama"]:
+                NavigationToolbar2.view = "diaporama"
+                display_diaporama(images)
+            else:
+                NavigationToolbar2.view = "panorama"
+                display_panorama(images)
+
+            # Re-implement default toolbar functions
+            NavigationToolbar2.back = original_back
+            NavigationToolbar2.forward = original_forward
         
-        # Override the toolbar functions 'back' and 'forward' to move in the image stack
-        original_back = NavigationToolbar2.back
-        NavigationToolbar2.back = stack_back
-        original_forward = NavigationToolbar2.forward
-        NavigationToolbar2.forward = stack_forward
-        
-        # Launch the appropriate display
-        if answer in ["d", "diaporama"]:
-            NavigationToolbar2.view = "diaporama"
-            display_diaporama(images)
-        elif answer in ["p", "panorama"]:
-            NavigationToolbar2.view = "panorama"
-            display_panorama(images)
-            
-        # Re-implement default toolbar functions
-        NavigationToolbar2.back = original_back
-        NavigationToolbar2.forward = original_forward
+        else:
+            print("Error! Please enter one of the valid options as displayed...")
+            answer = False
