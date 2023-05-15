@@ -32,7 +32,6 @@ import config
 import glob
 import numpy as np
 import pandas as pd
-#from extract_metadata import extract_metadata_upload
 from organise_images import (get_coords, extract_metadata_upload)
 
 class Event():
