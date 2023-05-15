@@ -28,13 +28,12 @@ choose_file_type
 """
 
 import os
-import shutil
 import config
 import glob
 import numpy as np
 import pandas as pd
-#from extract_metadata import extract_metadata_upload
-from organise_images import (add_geo_event, add_geo_image, extract_metadata_upload)
+from organise_images import (get_coords, extract_metadata_upload)
+
 
 class Event():
     """ The Event class that corresponds to a set of images.
@@ -89,19 +88,21 @@ def single_file(source, dest):
 
     if filename.lower() in ['q', "quit"]:
         print("You decided to stop the image upload.")
-        return
+        raise SystemExit
     path_to_file = os.path.join(source, filename)
 
     # Check if results are files
     if os.path.isfile(path_to_file):
         #shutil.copy(path_to_file, dest)
-        extract_metadata_upload(path_to_file, dest, filename)
+        ans_geo = False
+        ans_geo = input("Would you like to add geoinformation to the image? Type Y or N.").lower()
+        if ans_geo in ['y', 'yes']:
+            ans_geo = True
+        extract_metadata_upload(path_to_file, dest, filename, add_geo = ans_geo, single = True, coords = None)
         print("Image has been copied!\n")
-        add_geo_image(filename)
-        
     else:
         print("Sorry, the image could not be found... Upload aborted.")
-        return
+
 
 
 # if user is in folder with his images, ask the user for file extension
@@ -121,7 +122,7 @@ def choose_file_type(source, dest):
 
     if input_message.lower() == 'q':
         print("You decided to stop the image upload.")
-        return
+        raise SystemExit
 
     for index, item in enumerate(options):
         input_message += f'{index+1}) {item}\n'
@@ -139,19 +140,32 @@ def choose_file_type(source, dest):
         file_extension = '*.' + ending
     else:
         file_extension = '*.' + user_input
+    add_location = input("Would you like to add a location to the files? Type Y or N.\n").lower()
+    print()
+    ans_geo = False
+    ans_single = False
+    coords_group = None
+    if add_location in ["y", "yes"]:
+        ans_geo = True
+        answer_single = input("Would you like to add the location for each image individually? Type Y or N.\n")
+        print()
+        if answer_single in ["y", "yes"]:
+            ans_single = True
+        if answer_single in ["n", "no"]:
+            group_location = input("Enter the location which should be added to the images.\n")
+            print()
+            coords_group = get_coords(group_location)
 
     for full_file_name in glob.glob(os.path.join(source, file_extension)):
-        # copy whole tree (with subdirs), glob.glob("path/to/dir/*.*") to get list of all filenames
         file_name = os.path.basename(full_file_name)
-        if os.path.isfile(full_file_name): # check if results are files
-            extract_metadata_upload(full_file_name, dest, file_name)
+        if os.path.isfile(full_file_name): 
+            extract_metadata_upload(full_file_name, dest, file_name, add_geo = ans_geo, single = ans_single, coords = coords_group)
     print("Images have been copied!\n")
     
 
 def upload_images():
     """ Uploads images from specified folder by the user in Digital Darkroom.
     """
-
     # Ask for path to folder from which images will be uploaded
     upload_from = input("Where are the images you want to upload?\n"
                         "Please enter the full path from your home directory:"
@@ -173,11 +187,9 @@ def upload_images():
         print()
         if event_creation in ["c", "create"]:
             event = create_event()
-            creation = True
             upload_to = event.path
             answer = True
         elif event_creation in ["a", "add"]:
-            creation = False
             list_event = np.unique(config.DB["Event"].dropna())
             for event_name in list_event:
                 print(event_name)
@@ -214,7 +226,8 @@ def upload_images():
         raise SystemExit
     if int(answer) == 1:
         single_file(upload_from, upload_to)
+        print(config.DB)
     if int(answer) == 2:
         choose_file_type(upload_from, upload_to)
-        if creation:
-            add_geo_event(event)
+        print(config.DB)
+
