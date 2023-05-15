@@ -34,7 +34,7 @@ import glob
 import numpy as np
 import pandas as pd
 #from extract_metadata import extract_metadata_upload
-from organize import (add_geo_event, add_geo_image, extract_metadata_upload)
+from organise_images import (add_geo_event, add_geo_image, extract_metadata_upload)
 
 class Event():
     """ The Event class that corresponds to a set of images.
