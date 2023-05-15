@@ -179,20 +179,20 @@ def update_view(self):
             empty_image = Image.new("1", (600, 480), 1)
         
             figure, axes = plt.subplots(3, 5)
-            for index, image in enumerate(current):
+            for index, image_name in enumerate(current):
                 i = int(index / 5)
                 j = int(index % 5)
-                if image is None:
+                if image_name is None:
                     axes[i, j].imshow(empty_image)
                 else:
                     
                     # Handle the case where the filepath is not an image 
                     try:
-                        image = Image.open(os.path.join(config.images_path, config.DB.loc[image, "Event"], image))
+                        image = Image.open(os.path.join(config.images_path, config.DB.loc[image_name, "Event"], image_name))
                         height = int(image.size[0] / 20)
                         width = int(image.size[1] / 20)
                         axes[i, j].imshow(image.resize((height, width)))
-                        axes[i, j].set_title(f"Image number = {index + 15 * self.image_stack._pos}", fontsize=7)
+                        axes[i, j].set_title(f"{image_name}", fontsize=7)
                     except UnidentifiedImageError:
                         axes[i, j].imshow(empty_image)
                 axes[i, j].set_axis_off() 
@@ -206,6 +206,7 @@ def update_view(self):
                 height = int(image.size[0] / 4)
                 width = int(image.size[1] / 4)
                 plt.imshow(image.resize((height, width)))
+                plt.title(f"{current}", fontsize=7, picker = True)
                 plt.axis('off')
                 plt.show()
             except UnidentifiedImageError:
@@ -257,6 +258,7 @@ def display_diaporama(images):
     height = int(image.size[0] / 4)
     width = int(image.size[1] / 4)
     plt.imshow(image.resize((height, width)))
+    plt.title(f"{images[0]}", fontsize=7, picker = True)
     plt.axis("off")
     plt.show()
     
@@ -289,18 +291,18 @@ def display_panorama(images):
     
     # Start the panorama display (15 images in 3 rows and 5 columns)
     figure, axes = plt.subplots(3, 5)
-    for index, image in enumerate(group_images[0]):
+    for index, image_name in enumerate(group_images[0]):
         i = int(index / 5)
         j = int(index % 5)
-        if image is None:
+        if image_name is None:
             axes[i, j].imshow(empty_image)
         else:
             try:
-                image = Image.open(os.path.join(config.images_path, config.DB.loc[image, "Event"], image))
+                image = Image.open(os.path.join(config.images_path, config.DB.loc[image_name, "Event"], image_name))
                 height = int(image.size[0] / 20)
                 width = int(image.size[1] / 20)
                 axes[i, j].imshow(image.resize((height, width)))
-                axes[i, j].set_title(f"Image number = {index}", fontsize=7)
+                axes[i, j].set_title(f"{image_name}", fontsize=7, picker = True)
             except UnidentifiedImageError:
                 axes[i, j].imshow(empty_image)
         axes[i, j].set_axis_off()
@@ -334,3 +336,29 @@ def display():
         else:
             print("Error! Please enter one of the valid options as displayed...")
             answer = False
+
+def select_image(event):
+    """ Returns the image name that has been picked by user.
+    
+    Parameters
+    ----------
+    pick_event : matplotlib.backend_bases.PickEvent
+        the event that was picked on the figure.
+    """
+    plt.close()
+    title = event.artist
+    image = title.get_text()
+    print(image)
+    
+def pick_image():
+    """ Pick an image in the panorama display.
+    
+    Returns
+    -------
+    image : str
+        the name of the image.
+    """
+    
+    plt.connect(s = "pick_event", func = select_image)
+    display()
+    
