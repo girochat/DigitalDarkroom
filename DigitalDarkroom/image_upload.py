@@ -34,6 +34,7 @@ import numpy as np
 import pandas as pd
 from organise_images import (get_coords, extract_metadata_upload)
 
+
 class Event():
     """ The Event class that corresponds to a set of images.
     
