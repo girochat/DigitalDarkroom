@@ -392,7 +392,10 @@ def select_image(pick_event):
         plt.close()
         title = pick_event.artist
         image = title.get_text()
-        imedit.edit(image)
+        try:
+            imedit.edit(image)
+        except SystemExit:
+            pass
     
 def pick_image():
     """ Pick an image in the panorama display.
