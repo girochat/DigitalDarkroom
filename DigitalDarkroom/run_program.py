@@ -51,7 +51,7 @@ while not quit:
 
     elif next_task in ["e", "edit"]:
         try:
-            imedit.edit()
+            imedit.select_image()
         except SystemExit:
             pass
         

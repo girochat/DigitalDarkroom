@@ -39,7 +39,7 @@ def select_image():
         print()
  
         if answer in ["p", "pick"]:
-            image = implay.pick_image()
+            implay.pick_image()
                 
         elif answer in ["n", "name"]:
             image = input("Enter the name of the image: (Q/Quit)\n")
@@ -48,14 +48,15 @@ def select_image():
             if image not in config.DB.index:
                 print("The image could not be found...\n")
                 answer = False
+            else:
+                edit(image)
         
         elif answer in ["q", "quit"]:
             raise SystemExit      
         else:
             print("Error! Please enter one of the valid options as displayed...")
             answer = False
-    
-    return image
+            
 
 def filter_image(img, event_path):
     """ Let the user select a filter from different options to apply to the image
@@ -137,13 +138,17 @@ def enhance_image(img, event_path):
     implay.preview(img_sharped, event_path)
     
 
-def edit():
-    """ Function to handle user input for image editing
+def edit(image):
+    """ Function to handle user input for image editing.
+    
+    Parameters
+    ----------
+    image : str
+        the image name to edit.
     """
-    # Let the user select the image
-    image = select_image()
+    # Get the event of the image
     event_path = os.path.join(config.images_path, config.DB.loc[image, "Event"])
-    image = Image.open(os.path.join(event, image))
+    image = Image.open(os.path.join(event_path, image))
     
     quit_editing = False
     while not quit_editing:
@@ -155,10 +160,10 @@ def edit():
                           "- Go back to the main program => type 'Q' or 'quit'\n").lower()
         
         if next_task in ["f", "filter"]:
-            image_filtering(image, event_path)
+            filter_image(image, event_path)
             
         elif next_task in ["e", "enhance"]:
-            image_enhancement(image, event_path)
+            enhance_image(image, event_path)
             
         elif next_task in ["q", "quit"]:
             raise SystemExit
