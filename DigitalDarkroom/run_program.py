@@ -4,6 +4,7 @@ import config
 import image_upload as imload 
 import display_images as implay
 import edit_images as imedit
+import organise_images as imchange
 import visualise_map as immap
 import organise_images as imchange
 
@@ -36,7 +37,6 @@ while not quit:
                      "- Edit an image stored in one of your event folders => type 'E' or 'edit'\n"
                      "- Locate your images on the world map => type 'M' or 'map''\n"
                      "- Change information of an event or image => type 'C' or 'change'\n"
-                     "- Display the locations on a map => type 'M' or 'map'\n"
                      "- Delete events or images => type 'D' or 'delete'\n"
                      "- Quit the program => type 'Q' or 'quit'\n").lower()
     print()
@@ -58,12 +58,6 @@ while not quit:
             imedit.select_image()
         except SystemExit:
             pass
-        
-    elif next_task in ["m", "map"]:
-        try:
-            immap.plot_locations()
-        except SystemExit:
-            pass
 
     elif next_task in ["c", "change"]:
         try:
@@ -73,7 +67,7 @@ while not quit:
 
     elif next_task in ["m", "map"]:
         try:
-            pass
+            immap.plot_locations()
         except SystemExit:
             pass
 
@@ -97,3 +91,4 @@ while not quit:
 
     else:
         print("Error! Please enter one of the valid options as displayed...")
+

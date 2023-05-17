@@ -33,8 +33,7 @@ import glob
 import config
 import numpy as np
 import pandas as pd
-#from extract_metadata import extract_metadata_upload
-from organise_images import (add_geo_event, add_geo_image, extract_metadata_upload)
+from organise_images import (get_coords, extract_metadata_upload)
 
 class Event():
     """ The Event class that corresponds to a set of images.
@@ -109,6 +108,7 @@ def single_file(source, dest):
     else:
         print("Sorry, the image could not be found... Upload aborted.")
         raise SystemExit
+
 
 def choose_file_type(source, dest):
     """ Copies an entire list of images based on the image extension to Digital Darkroom.
