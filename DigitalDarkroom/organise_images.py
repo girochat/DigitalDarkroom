@@ -1,8 +1,7 @@
 """
-First draft:
 Extract metadata for images
-Change information fo an image or event: name or location -> add option to change the description
-Delete events or images (not tested correctly yet, but should delete images and events from database as well as from the DD folder)
+Change information fo an image or event: name or location
+Delete events or images 
 """
 
 # import modules
@@ -116,122 +115,168 @@ def location_image_db(image_name, location_name):
         image_db:       updated database
     """
     coords = get_coords(location_name)
-    config.DB.loc[image_name, ["Latitude", "Longitude", "Location"]] = coords # location for image
+    config.DB.loc[image_name, ["Latitude", "Longitude", "Location"]] = coords 
     config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
+    print("The location has been changed.")
     return config.DB
 
 def change_info_event():
-    """Function to get ask user if coordinates should be added and to gather the location name
+    """Function to change the information of an event (name or location)
     """
+    # list the available events and test if user input is correct
     list_event = np.unique(config.DB["Event"].dropna())
     for event_name in list_event:
         print(event_name)
-    event = input("For which event would you like to change the information?\n").strip()
+    event = input("For which event would you like to change the information? Type 'q' to quit.\n").strip()
+
     while event not in list_event:
         print("Sorry, the event was not found. Try again or type q to quit.")
-        event = input("For which event would you like to change the information?\n").strip().lower()
-        if event in ["q", "quit"]:
+        event = input("For which event would you like to change the information?\n").strip()
+        if event.lower() in ["q", "quit"]:
             print("You decided not to change the event information.")
             raise SystemExit
 
-    change = input("What would you like to change?\n"
-                   "- Name => type 'N' or name\n"
-                   "- Location => type 'L' or location \n"
-                   "- Quit => type 'Q' or quit \n")
+    # list options and let user choose one of them
+    while True:
+        change = input("What would you like to change?\n"
+                "- Name => type 'N' or name\n"
+                "- Location => type 'L' or location \n"
+                "- Quit => type 'Q' or quit \n")
+        
+        if change.lower() in ["n", "name"]:
+            new_name = input("What should the new name for the event be\n")
+            try:
+                config.DB.loc[config.DB.Event ==event, ["Event"]] = new_name  #location for event
+                config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
+                os.rename(os.path.join(config.images_path, event), os.path.join(config.images_path, new_name))
+                break
+            except OSError as e:
+                print("Error: %s - %s." % (e.filename, e.strerror))
 
-    if change.lower() in ["n", "name"]:
-        new_name = input("What should the new name for the event be\n")
-        try:
-            config.DB.loc[config.DB.Event ==event, ["Event"]] = new_name  #location for event
-            config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
-            os.rename(os.path.join(config.images_path, event), os.path.join(config.images_path, new_name))
-        except OSError as e:
-            print("Error: %s - %s." % (e.filename, e.strerror))
+        if change.lower() in ["l", "location"]:
+            location_name = input("To which country, city, village or address should the location be changed?\n")
+            location_event_db(event, location_name)
+            print("The event location has been changed.")
+            break
 
-    if change.lower() in ["l", "location"]:
-        location_name = input("To which country, city, village or address should the location be changed?\n")
-        location_event_db(event, location_name)
+        if change.lower() in ["q", "quit"]:
+            print("You decided not to change the event information.")
+            raise SystemExit
 
-    if change.lower() in ["q", "quit"]:
-        print("You decided not to change the event information.")
-        raise SystemExit
+        else:
+            print("No available option chosen. Try again or press 'q' to quit.")
 
 
 def change_info_image():
-    """Function to get ask user if coordinates should be added and to gather the location name
+    """Function to change the name or location of an image
     """
+    # list event names and test if user chose available event
     list_event = np.unique(config.DB["Event"].dropna())
     for event_name in list_event:
         print(event_name)
     event = input("In which event is the file located?\n")
+
     while event not in list_event:
         print("Sorry, the event was not found. Try again or type q to quit.")
-        event = input("In which event is the file located?\n").strip().lower()
-        if event in ["q", "quit"]:
+        event = input("In which event is the file located?\n").strip()
+        if event.lower() in ["q", "quit"]:
             print("You decided not to change the event information.")
             raise SystemExit
     event_path = os.path.join(config.images_path, event)
+
+    # list picture names and test if picture exists
     print("The following images are in the event:")
     for file in os.listdir(event_path):
         print(file)
-
-    image_name = input("For which image would you like to change the information?") # needs to be changed -> selection available?
+    image_name = input("For which image would you like to change the information?\n") 
     file_path = os.path.join(event_path, image_name)
-    if not os.path.isfile(file_path):
+
+    while not os.path.isfile(file_path):
         print("Sorry, the image was not found... \n")
-        raise SystemExit
+        image_name = input("Try again to enter the image name or press 'q' to quit.\n")
+        if image_name.lower() in ["q", "quit"]:
+            print("You decided not to change the event information.")
+            raise SystemExit
+        print()
 
-    change = input("What would you like to change?\n"
-                   "- Name => type 'N' or name\n"
-                   "- Location => type 'L' or location \n"
-                   "- Quit => type 'Q' or quit \n")
+    # list options for the changes
+    while True:
+        change = input("What would you like to change?\n"
+                    "- Name => type 'N' or name\n"
+                    "- Location => type 'L' or location \n"
+                    "- Quit => type 'Q' or quit \n")
 
-    if change.lower() in ["n", "name"]:
-        new_name = input("What should the new name for the image be\n")
-        try:
-            config.DB.rename(index={image_name:new_name}, inplace=True)
-            config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
-            os.rename(file_path, os.path.join(event_path, new_name))
-        except OSError as e:
-            print("Error: %s - %s." % (e.filename, e.strerror))
+        if change.lower() in ["n", "name"]:
+            new_name = input("What should the new name for the image be? \n")
+            try:
+                config.DB.rename(index={image_name:new_name}, inplace=True)
+                config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
+                os.rename(file_path, os.path.join(event_path, new_name))
+                print("The name has been changed.")
+                break
+            except OSError as e:
+                print("Error: %s - %s." % (e.filename, e.strerror))
 
-    if change.lower() in ["l", "location"]:
-        location_name = input("Write the name of the location that should be added - "
-                              "A country, city, village or address will do\n")
-        location_image_db(image_name, location_name)
-    
-    if change.lower() in ["q", "quit"]:
-        print("You decided not to change the image information.")
-        raise SystemExit
+        if change.lower() in ["l", "location"]:
+            location_name = input("Write the name of the location that should be added - "
+                                "A country, city, village or address will do\n")
+            location_image_db(image_name, location_name)
+
+        if change.lower() in ["q", "quit"]:
+            print("You decided not to change the image information.")
+            raise SystemExit
+
+        else:
+            print("No available option chosen. Try again or press 'q' to quit.")
+
 
 def change_info():
-    answer = input("For what would you like to change the information\n"
-                   "- Event => type 'E' or 'event'\n"
-                   "- Image => type 'I' or 'image'\n"
-                    "- Quit => type 'Q' or quit \n").lower()
-    if answer in ["e", "event"]:
-        change_info_event()
-        print(config.DB)
+    """Function to change the information of an event or a file (name or location)
+    """
+    while True:
+        answer = input("For what would you like to change the information\n"
+                    "- Event => type 'E' or 'event'\n"
+                    "- Image => type 'I' or 'image'\n"
+                        "- Quit => type 'Q' or quit \n").lower()
 
-    if answer in ["i", "image"]:
-        change_info_image()
-        print(config.DB)
+        if answer in ["e", "event"]:
+            change_info_event()
+            break
 
-    if answer.lower() in ["q", "quit"]:
-        print("You decided not to change the event information.")
-        raise SystemExit
-    else:
-        print("No possible option chosen")
+        if answer in ["i", "image"]:
+            change_info_image()
+            break
+
+        if answer in ["q", "quit"]:
+            print("You decided not to change the event information.")
+            raise SystemExit
+
+        else:
+            print("Invalid input. Try again.")
+
+
+
 
 #########################################################
 # Delete event or file
 #########################################################
 def del_event():
+    """Function to delete an entire event
+    """
+    # list events
     list_event = np.unique(config.DB["Event"].dropna())
     for event_name in list_event:
         print(event_name)
-    event = input("Which event would you like to delete?\n")
+    event = input("Which event would you like to delete? Write the name or press 'q' to quit. \n")
     print()
+    while event not in list_event and event not in ['q', 'quit']:
+        print("Sorry, the event was not found. Try again or type q to quit.")
+        event = input("Which event would you like to delete?\n").strip()
+    if event.lower() in ["q", "quit"]:
+        print("You decided not to change the event information.")
+        raise SystemExit
+    
+    # delete event from database and from images folder
     event_path = os.path.join(config.images_path, event)
     config.DB = config.DB.drop(config.DB[config.DB.Event == event].index)
     print("Event deleted from database")
@@ -241,43 +286,72 @@ def del_event():
     except OSError as e:
         print("Error: %s - %s." % (e.filename, e.strerror))
 
+
 def del_file():
+    """Function to delete a file within an event 
+    """
+    # list events
     list_event = np.unique(config.DB["Event"].dropna())
     for event_name in list_event:
         print(event_name)
-    event = input("In which event is the file located?\n")
+    event = input("In which event is the file located?\n").strip()
+    while event not in list_event:
+        print("Sorry, the event was not found. Try again or type q to quit.")
+        event = input("In which event is the file located?\n").strip()
+        if event.lower() in ["q", "quit"]:
+            print("You decided not to change the event information.")
+            raise SystemExit
+    event_path = os.path.join(config.images_path, event)
+
+    # list images in event
+    print("The following images are in the event:")
+    for file in os.listdir(event_path):
+        print(file)
     file = input("Which file would you like to delete?\n")
     print()
-    event_path = os.path.join(config.images_path, event)
-    if not os.path.exists(event_path):
-        print("Sorry, the event was not found... \n")
-        raise SystemExit
-
+    while file not in os.listdir(event_path):
+        print("Sorry, the file was not found. Try again or type q to quit.")
+        file = input("Type the name of the file you would like to delete?\n").strip()
+        if file.lower() in ["q", "quit"]:
+            print("You decided not to delete the file.")
+            raise SystemExit
     file_path = os.path.join(event_path, file)
     if not os.path.isfile(file_path):
         print("Sorry, the image was not found... \n")
         raise SystemExit
-    # Try to delete the file.
+
+    # Try to delete the file
     try:
         os.remove(file_path)
         config.DB = config.DB.drop(index = file)
+        print("Image has been deleted.")
     except OSError as e:
     # If it fails, inform the user.
         print("Error: %s - %s." % (e.filename, e.strerror))
 
        
 def delete():
-    answer = input("What would you like to delete?\n"
-                   "- Event => type 'E' or 'event\n"
-                   "- File => type 'F' or 'file'\n"
-                   "- Quit => type 'Q' or 'quit'\n").lower()
-    if answer in ["e", "event"]:
-        del_event()
-        print(config.DB)
-    if answer in ["f", "file"]:
-        del_file()
-        print(config.DB)
-    if answer in ['q', "quit"]:
-        print("You decided not to delete anything.")
-        raise SystemExit
+    """Function to delete an event or a file from DigitalDarkroom
+    """
+    while True:
+        answer = input("What would you like to delete?\n"
+                "- Event => type 'E' or 'event\n"
+                "- File => type 'F' or 'file'\n"
+                "- Quit => type 'Q' or 'quit'\n").lower()
+
+        if answer in ["e", "event"]:
+            del_event()
+            break
+
+        if answer in ["f", "file"]:
+            del_file()
+            break
+
+        if answer in ['q', "quit"]:
+            print("You decided not to delete anything.")
+            raise SystemExit
+
+        else:
+            print("The chosen option is not available. Try again or press 'q' to quit.")
+
 
