@@ -44,6 +44,7 @@ def get_coords(location_name):
         print("Something went wrong")
 
 
+
 def extract_metadata_upload(full_file_name, dest, filename, add_geo = False, single = False, coords = None):
     """ Extract metadata when images are uploaded and include it into the database image_DB
     """
@@ -328,8 +329,7 @@ def del_file():
     except OSError as e:
     # If it fails, inform the user.
         print("Error: %s - %s." % (e.filename, e.strerror))
-
-       
+        
 def delete():
     """Function to delete an event or a file from DigitalDarkroom
     """
@@ -353,5 +353,3 @@ def delete():
 
         else:
             print("The chosen option is not available. Try again or press 'q' to quit.")
-
-
