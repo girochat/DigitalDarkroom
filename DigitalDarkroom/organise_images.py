@@ -73,7 +73,8 @@ def extract_metadata_upload(full_file_name, dest, filename, add_geo = False, sin
                    'Timestamp': timestamp,
                    'Creation':creation,
                    'Date_Time':date_time,
-                   'Date': date}
+                   'Date': date,
+                   'Edited': False}
         config.DB.loc[filename] = pd.Series(new_row)
         if add_geo:
             if single:
