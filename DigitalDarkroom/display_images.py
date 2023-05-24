@@ -106,6 +106,7 @@ def save_image(edited_image, event_path):
         print()
         if answer in ["p", "preview"]:
             plt.imshow(edited_image)
+            plt.axis("off")
             plt.show()
             
             # Ask for confirmation upon closing the preview window
