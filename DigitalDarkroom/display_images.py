@@ -61,37 +61,28 @@ def get_event():
         the absolute path to the event or to Images if no event specified.
     """
     
-    # Ask user to select an event to view images
-    answer = False
-    while not answer:
-        from_event = input("Would you like to view images of a specific event?"
-                           " (Y/Yes or N/No or Q/Quit) :\n").lower()
-        print()
-        if from_event in ["y", "yes"]:
-            
-            # Display the list of available events
-            list_event = np.unique(config.DB["Event"].dropna())
-            for event_name in list_event:
-                print(event_name)
-            event = input("Enter the name of the event from the given list:\n")
-            print()
-            
-            # Handle the case where the event is not in the Images directory
-            if not event in os.listdir(config.images_path):
-                print("Sorry, the event was not found... \n")
-            else:
-                event = os.path.join(config.images_path, event)
-                answer = True
+    # Ask user to select an event from which to view images
+    event = False
+    while not event:
 
-        elif from_event in ["n", "no"]:
-            answer = True
-            event = config.images_path
+        # Display the list of available events
+        list_event = np.unique(config.DB["Event"].dropna())
+        for event_name in list_event:
+            print(event_name)
+        event = input("Enter the name of the event you would like to"
+                      " view images from (Press 'enter' for no event or Q/Quit):\n").strip()
+        print()
             
-        elif from_event in ["q", "quit"]:
+        # Handle the case where the event is not in the Images directory
+        if event in os.listdir(config.images_path) or event == "":
+            event = os.path.join(config.images_path, event)
+        
+        elif event in ["q", "quit"]:
             raise SystemExit
         else:
-            print("Error! Please enter one of the valid options as displayed...")
-     
+            print("Sorry, the event was not found... \n")
+            event = False
+            
     return event
 
 def save_image(edited_image, event_path):
@@ -128,6 +119,7 @@ def save_image(edited_image, event_path):
             print()
             try:
                 edited_image.save(os.path.join(event_path, image_name))
+                
                 answer = True
             except ValueError:
                 print("Error! The file extension is not valid. Saving aborted.")
@@ -399,11 +391,6 @@ def select_image(pick_event):
     
 def pick_image():
     """ Pick an image in the panorama display.
-    
-    Returns
-    -------
-    image : str
-        the name of the image.
     """
     
     # Allow selecting the image by picking its name
