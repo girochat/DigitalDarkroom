@@ -12,6 +12,9 @@ filter_image
 enhance_image
     Function to enhance brightness, sharpness, colour or contrast.
 
+rotate_image
+    Function to rotate an image by 90, 180 or 270 degrees.
+
 edit
     Function to select the editing option.
 """
@@ -35,11 +38,12 @@ def select_image():
     answer = False
     while not answer:
         answer = input("Would you like to pick a specific image in the display"
-                        " or enter the name of a particular image? (P/Pick or N/Name or Q/Quit)\n")
+                        " or enter the name of a particular image?"
+                       " (P/Pick or N/Name or Q/Quit)\n").lower().strip()
         print()
  
         if answer in ["p", "pick"]:
-            implay.pick_image()
+            implay.display(picker = True)
                 
         elif answer in ["n", "name"]:
             image = input("Enter the name of the image: (Q/Quit)\n")
@@ -58,7 +62,7 @@ def select_image():
             answer = False
             
 
-def filter_image(img, event_path):
+def filter_image(img, image_name):
     """ Let the user select a filter from different options to apply to the image
     
     Parameters
@@ -66,15 +70,15 @@ def filter_image(img, event_path):
     img : PIL.Image
         the image to apply filter on.
     
-    event_path : str
-        the path to the event of the image.
+    image_name : str
+        the name of the original image
     """
     func_input = input("What type of image filtering would you like to do?\n"
                        "- Changing the contour => type 'c'\n"
                        "- Edge enhancement => type 'e'\n"
                        "- Blurring => type 'b'\n" 
                        "- Enhancing the details => type 'd'\n"
-                       "- Quit the program => type 'Q' or 'quit'\n").lower()
+                       "- Quit the program => type 'Q' or 'quit'\n").lower().strip()
     
     # Define dictionary with the functions the user can use
     func_map = {'c':ImageFilter.CONTOUR,
@@ -89,13 +93,13 @@ def filter_image(img, event_path):
     if func_input.strip() in func_map.keys():
         func = func_map[func_input]
         im2 = img.filter(func)
-        implay.preview(im2, event_path) 
+        implay.preview(im2, image_name) 
     
     else:
         print("Sorry, the option could not be found!")
 
 
-def enhance_image(img, event_path):
+def enhance_image(img, image_name):
     """ Function to let the user apply different image enhancement options
     
     Parameters
@@ -103,8 +107,8 @@ def enhance_image(img, event_path):
     img : PIL.Image
         the image to apply filter on.
     
-    event_path : str
-        the path to the event of the image.
+    image_name : str
+        the name of the original image.
     """
     func_map = {'s':ImageEnhance.Sharpness,
                 'b':ImageEnhance.Brightness,
@@ -135,21 +139,48 @@ def enhance_image(img, event_path):
     
     curr_sharp = func_map[func_input](img)
     img_sharped = curr_sharp.enhance(float(effect))
-    implay.preview(img_sharped, event_path)
-    
+    implay.preview(img_sharped, image_name)
 
-def edit(image):
+def rotate_image(img, image_name):
+    """ Function to let the user rotate an image.
+    
+    Parameters
+    ----------
+    img : PIL.Image
+        the image to rotate.
+    
+    image_name : str
+        the name of the original image.
+    """
+
+    func_map = {'90':Image.ROTATE_90,
+            '180':Image.ROTATE_180,
+            '270':Image.ROTATE_270}
+    
+    func_input = input("How many degrees would you like to rotate the image?\n"
+                       "Type 90, 180 or 270\n")
+    
+    while func_input.strip() not in func_map.keys():
+        func_input = input("Could not be found. Try again or press q.\n")
+        if func_input.strip() in ["q", "quit"]:
+            print('goodbye!')
+            sys.exit()
+
+    img_transposed = img.transpose(func_map[func_input])
+    implay.preview(img_transposed, image_name)    
+
+def edit(image_name):
     """ Function to handle user input for image editing.
     
     Parameters
     ----------
-    image : str
+    image_name : str
         the image name to edit.
     """
-    # Get the event of the image
-    event_path = os.path.join(config.images_path, config.DB.loc[image, "Event"])
-    image = Image.open(os.path.join(event_path, image))
-    
+    # Load the image
+    event_path = os.path.join(config.images_path, config.DB.loc[image_name, "Event"])
+    image = Image.open(os.path.join(event_path, image_name))
+
     quit_editing = False
     while not quit_editing:
 
@@ -157,14 +188,18 @@ def edit(image):
         print("What do you want to do?")
         next_task = input("- Filter an image  => type 'F' or 'filter'\n"
                           "- Enhance an image => type 'E' or 'enhance'\n"
+                          "- Rotate image => type 'R' or 'rotate'\n"
                           "- Go back to the main program => type 'Q' or 'quit'\n").lower()
         
         if next_task in ["f", "filter"]:
-            filter_image(image, event_path)
+            filter_image(image, image_name)
             
         elif next_task in ["e", "enhance"]:
-            enhance_image(image, event_path)
-            
+            enhance_image(image, image_name)
+
+        elif next_task in ["r", "rotate"]:
+            rotate_image(image, image_name)
+
         elif next_task in ["q", "quit"]:
             raise SystemExit
 
