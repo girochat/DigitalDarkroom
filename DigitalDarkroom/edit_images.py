@@ -108,7 +108,7 @@ def enhance_image(img, image_name):
         the image to apply filter on.
     
     image_name : str
-        the name of the original image
+        the name of the original image.
     """
     func_map = {'s':ImageEnhance.Sharpness,
                 'b':ImageEnhance.Brightness,
@@ -141,16 +141,16 @@ def enhance_image(img, image_name):
     img_sharped = curr_sharp.enhance(float(effect))
     implay.preview(img_sharped, image_name)
 
-def rotate_image(img, event_path):
-    """ Function to let the user rotate an image
+def rotate_image(img, image_name):
+    """ Function to let the user rotate an image.
     
     Parameters
     ----------
     img : PIL.Image
         the image to rotate.
     
-    event_path : str
-        the path to the event of the image.
+    image_name : str
+        the name of the original image.
     """
 
     func_map = {'90':Image.ROTATE_90,
@@ -167,7 +167,7 @@ def rotate_image(img, event_path):
             sys.exit()
 
     img_transposed = img.transpose(func_map[func_input])
-    implay.preview(img_transposed, event_path)    
+    implay.preview(img_transposed, image_name)    
 
 def edit(image_name):
     """ Function to handle user input for image editing.
@@ -198,7 +198,7 @@ def edit(image_name):
             enhance_image(image, image_name)
 
         elif next_task in ["r", "rotate"]:
-            rotate_image(image, event_path)
+            rotate_image(image, image_name)
 
         elif next_task in ["q", "quit"]:
             raise SystemExit
