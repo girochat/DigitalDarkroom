@@ -29,7 +29,7 @@ def select_images(pick_event):
         the event that was picked on the map.
     """
     # Get list of images that correspond to locations
-    plt.close()
+    plt.close('all')
     images = list(config.DB.iloc[pick_event.ind, :].index)
 
     # Launch image diaporama if right click 
@@ -38,9 +38,7 @@ def select_images(pick_event):
 
     # Launch image panorama if left click
     elif pick_event.mouseevent.button == 3:
-        implay.display_panorama(images, picker = False)
-
-    
+        implay.display_panorama(images, picker = False)  
     
 def plot_locations():
     """ Plots image locations on world map.
@@ -81,7 +79,6 @@ def plot_geo_heatmap():
                 cmap = 'Blues',
                 projection=proj,
                 fill = True,
-                levels = 1,
                 thresh = 0.05,
                 extent = (-180, -90, 180, 90))
     
