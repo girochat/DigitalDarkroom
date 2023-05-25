@@ -35,11 +35,12 @@ def select_image():
     answer = False
     while not answer:
         answer = input("Would you like to pick a specific image in the display"
-                        " or enter the name of a particular image? (P/Pick or N/Name or Q/Quit)\n")
+                        " or enter the name of a particular image?"
+                       " (P/Pick or N/Name or Q/Quit)\n").lower().strip()
         print()
  
         if answer in ["p", "pick"]:
-            implay.pick_image()
+            implay.display(picker = True)
                 
         elif answer in ["n", "name"]:
             image = input("Enter the name of the image: (Q/Quit)\n")
@@ -74,7 +75,7 @@ def filter_image(img, event_path):
                        "- Edge enhancement => type 'e'\n"
                        "- Blurring => type 'b'\n" 
                        "- Enhancing the details => type 'd'\n"
-                       "- Quit the program => type 'Q' or 'quit'\n").lower()
+                       "- Quit the program => type 'Q' or 'quit'\n").lower().strip()
     
     # Define dictionary with the functions the user can use
     func_map = {'c':ImageFilter.CONTOUR,
