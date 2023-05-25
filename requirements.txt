@@ -6,5 +6,8 @@ Python packages:
 - matplotlib
 - PIL
 - datetime
+- geopy
+- geopandas
+- geoplot
 - pyfiglet (optional but recommended)
 

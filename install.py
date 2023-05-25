@@ -33,7 +33,7 @@ while not installed:
         break
 
     # Remove first backslash if present
-    if input_path.startswith("/"):
+    if input_path.startswith("/") or input_path.startswith("\\"):
         input_path = input_path[1:]
 
     # Build absolute path to destination program folder
@@ -48,7 +48,8 @@ while not installed:
         
         # Handle the case when the program folder already exists
         try:
-            shutil.copytree(os.path.join(os.getcwd(), "DigitalDarkroom"), path_to_program) 
+            current_directory = os.path.dirname(os.path.realpath(__file__))
+            shutil.copytree(os.path.join(current_directory, "DigitalDarkroom"), path_to_program) 
 
         except FileExistsError:
             

@@ -5,6 +5,12 @@ Functions
 ---------
 get_event
     Function to get the path of a specific event chosen by the user.
+
+save_image
+    Function to save an edited image.
+
+preview
+    Function to preview an edited image before saving the changes.
     
 update_view
     Function to get the current image in the stack during the image display. 
@@ -17,12 +23,9 @@ stack_back
 stack_forward
     Function to move forward in the stack of images during the image dispaly. 
     Added as a private method to NavigationToolbar2.
-
-save_image
-    Function to save an edited image.
-
-preview
-    Function to preview an edited image before saving the changes.
+    
+set_figure
+    Function to initialise a new figure with a personalised NavigationToolbar2.
 
 display
     Function to choose the type of image display in the dynamic interface.
@@ -33,123 +36,137 @@ display_diaporama
     
 display_panorama
     Function to display images of specific event in panorama view.
+
+select_image
+    Function to select an image for editing. Called by a pick event on the figure.
+
 """
 import os
+import config
 import numpy as np
 import pandas as pd
+import edit_images as imedit
 import matplotlib.pyplot as plt
 import matplotlib.cbook as cbk
+from matplotlib.text import Text
 from matplotlib.backend_bases import NavigationToolbar2
 from PIL import Image, UnidentifiedImageError
 
 def get_event():
     """ Prompts the user to enter the event from which images will be displayed.
+    
+    Returns
+    -------
+    event : str
+        the absolute path to the event or to Images if no event specified.
     """
     
-    # Ask user to select an event to view images
-    answer = False
-    while not answer:
-        from_event = input("Would you like to view images of a specific event?"
-                           " (Y/Yes or N/No or Q/Quit) :\n").lower()
-        print()
-        if from_event in ["y", "yes"]:
-            
-            # Display the list of available events
-            list_event = np.unique(pd.read_pickle(os.path.join(os.environ["PROGRAM_PATH"],"image_DB.pkl"))["Event"].dropna())
-            for event_name in list_event:
-                print(event_name)
-            event = input("Enter the name of the event from the given list:\n")
-            print()
-            
-            # Handle the case where the event is not in the Images directory
-            if not event in os.listdir(os.environ["IMAGES_PATH"]):
-                print("Sorry, the event was not found... \n")
-            else:
-                event = os.path.join(os.environ["IMAGES_PATH"], event)
-                answer = True
+    # Ask user to select an event from which to view images
+    event = False
+    while not event:
 
-        elif from_event in ["n", "no"]:
-            answer = True
-            event = os.environ["IMAGES_PATH"]
+        # Display the list of available events
+        list_event = np.unique(config.DB["Event"].dropna())
+        for event_name in list_event:
+            print(event_name)
+        event = input("Enter the name of an event (Press 'enter' for no event or Q/Quit):\n").strip()
+        print()
             
-        elif from_event in ["q", "quit"]:
+        # Handle the case where the event is not in the Images directory
+        if event in os.listdir(config.images_path) or event == "":
+            event = os.path.join(config.images_path, event)
+            
+        elif event in ["q", "quit"]:
             raise SystemExit
         else:
-            print("Error! Please enter one of the valid options as displayed...")
-     
+            print("Sorry, the event was not found... \n")
+            event = False
+            
     return event
 
-def save_image(edited_image, event_path):
+def save_image(edited_image, image_name):
     """ Allows to save an edited image in DigitalDarkroom.
     
     Parameters
     ----------
     edited_image : PIL.Image
         the edited image to save
-    event_path : str
-        the path to event folder containing original image
+    image_name : str
+        the name of the original image
     """
     
     # Ask user for confirmation
     answer = False
     while not answer:
-        answer = input("You asked to save the edited image."
-                       " Would you like to preview the changes"
-                        " or directly save the edited image?"
-                        " (P/Preview or S/Save or Q/Quit)\n").lower()
+        answer = input("Would you like to replace the original or"
+                        " save the edited image as a new image?"
+                        " (R/Replace or S/Save or Q/Quit)\n").lower()
         print()
-        if answer in ["p", "preview"]:
-            plt.imshow(edited_image)
-            plt.show()
+
+        if answer in ["s", "save"]:
             
-            # Ask for confirmation upon closing the preview window
-            answer = input("Would you like to save the edited image?"
-                           " (S/Save or Q/Quit)\n").lower()
-            print()
+            # Create new name for the edited image
+            name_components = image_name.split(".")
+            edited_image_name = name_components[0] + "_2." + name_components[1]
+            duplicate = 3
+            while edited_image_name in config.DB.index:
+                edited_image_name = name_components[0] + f"_{duplicate}." + name_components[1]
+                duplicate += 1
             
-        elif answer in ["s", "save"]:
-            image_name = input("Enter the name for your edited image: "
-                               "(Please specify the extension, ex: .jpg)\n")
-            print()
-            try:
-                edited_image.save(os.path.join(event_path, image_name))
-                answer = True
-            except ValueError:
-                print("Error! The file extension is not valid. Saving aborted.")
-                raise SystemExit
+            # Save image file in Images
+            event = config.DB.loc[image_name, "Event"]
+            edited_image.save(os.path.join(config.images_path, event, edited_image_name))
+                
+            # Update DB
+            new_row = config.DB.loc[image_name].copy()
+            new_row["Edited"] = True
+            config.DB.loc[edited_image_name] = new_row
+            config.DB.to_pickle(os.path.join(config.program_path, "image_DB.pkl"))
+            answer = True
+
+        elif answer in ["r", "replace"]:
+            
+            # Replace image file in Images
+            event = config.DB.loc[image_name, "Event"]
+            edited_image.save(os.path.join(config.images_path, event, image_name))
+                
+            # Update DB
+            config.DB.loc[image_name, "Edited"] = True
+            config.DB.to_pickle(os.path.join(config.program_path, "image_DB.pkl"))
             
         elif answer in ["q", "quit"]:
             raise SystemExit
         else:
             print("Error! Please enter one of the valid options as displayed...")
             answer = False
+    raise SystemExit
     
-def preview(edited_image, event_path):
+def preview(edited_image, image_name):
     """ Preview edited changes of an image.
     
     Parameters
     ----------
     edited_image : PIL.Image 
         the edited image to preview
-    event_path : str
-        the path to event folder containing original image
+    image_name : str
+        the name of the original image
     """ 
     
+    # Initialise a new figure of fixed size
+    toolbar = plt.rcParams['toolbar']
+    plt.rcParams['toolbar'] = 'None'
+    plt.figure()
+    fig_manager = plt.get_current_fig_manager()
+    fig_manager.resize(2500, 1500)  
+    
+    # Preview edited image
     plt.imshow(edited_image)
     plt.axis('off')
     plt.show()
     
-    answer = False
-    while not answer:
-        answer = input("Would you like to save the edited image? (S/Save or Q/Quit)\n").lower()
-        print()
-        if answer in ["s", "save"]:
-            save_image(edited_image, event_path)
-        elif answer in ["q", "quit"]:
-            raise SystemExit
-        else:
-            print("Error! Please enter one of the valid options as displayed...")
-            answer = False
+    # Save the edited image
+    plt.rcParams['toolbar'] = toolbar
+    save_image(edited_image, image_name)
 
 def update_view(self):
     """ Updates image display from the current position in the image stack. 
@@ -166,39 +183,60 @@ def update_view(self):
         
         # Update the panorama display
         if NavigationToolbar2.view == "panorama":
-            plt.close()
-        
+            plt.close('all')
+            figure, axes = plt.subplots(3, 5)
+            fig_manager = plt.get_current_fig_manager()
+            fig_manager.resize(2500, 1500)
+            
             # Create an empty image to fill the gaps of the panorama
             empty_image = Image.new("1", (600, 480), 1)
-        
-            figure, axes = plt.subplots(3, 5)
-            for index, image in enumerate(current):
+            for index, image_name in enumerate(current):
                 i = int(index / 5)
                 j = int(index % 5)
-                if image is None:
+                if image_name is None:
                     axes[i, j].imshow(empty_image)
                 else:
                     
                     # Handle the case where the filepath is not an image 
                     try:
-                        image = Image.open(os.path.join(NavigationToolbar2.event, image))
-                        height = int(image.size[0] / 4)
-                        width = int(image.size[1] / 4)
+                        image = Image.open(os.path.join(config.images_path, config.DB.loc[image_name, "Event"], image_name))
+                        height = int(image.size[0] / 20)
+                        width = int(image.size[1] / 20)
                         axes[i, j].imshow(image.resize((height, width)))
-                        axes[i, j].set_title(f"Image number = {index + 15 * self.image_stack._pos}", fontsize=7)
+                        
+                        # Activate selecting the image by picking the title or not
+                        if NavigationToolbar2.picker:
+                            axes[i, j].set_title(f"{image_name}", fontsize=7).set_picker(True)
+                        else:
+                            axes[i, j].set_title(f"{image_name}", fontsize=7)
+                            
                     except UnidentifiedImageError:
                         axes[i, j].imshow(empty_image)
-                axes[i, j].set_axis_off() 
+                axes[i, j].set_axis_off()
+                
+            if NavigationToolbar2.picker:
+                plt.connect(s = "pick_event", func = select_image)
             plt.show()
         
         # Update the diaporama display
         else:
-            plt.close()
+            plt.close('all')
+            figure = plt.figure()
+            fig_manager = plt.get_current_fig_manager()
+            fig_manager.resize(2500, 1500)
+            
             try:
-                image = Image.open(os.path.join(NavigationToolbar2.event, current))
+                image = Image.open(os.path.join(config.images_path, config.DB.loc[current, "Event"], current))
                 height = int(image.size[0] / 4)
                 width = int(image.size[1] / 4)
                 plt.imshow(image.resize((height, width)))
+                
+                # Activate selecting the image by picking the title or not
+                if NavigationToolbar2.picker:
+                    plt.connect(s = "pick_event", func = select_image)
+                    plt.title(f"{current}", fontsize=7, picker = True)
+                else:
+                    plt.title(f"{current}", fontsize=7)
                 plt.axis('off')
                 plt.show()
             except UnidentifiedImageError:
@@ -215,15 +253,52 @@ def stack_forward(self, *args, **kwargs):
     """
     self.image_stack.forward()
     self.update_view()
+
+def set_figure(picker):
+    """ Creates a new figure with personalised methods for the NavigationToolbar2.
+    
+    Parameters
+    ----------
+    picker : bool
+        specify if the images can be picked or not on the display.
+    """
+    # Create new figure
+    figure = plt.figure()
+    fig_manager = plt.get_current_fig_manager()
+    fig_manager.resize(2500, 1500)
+    
+    # Personalise the figure toolbar by adding a viewing method and keeping track of the current event
+    NavigationToolbar2.update_view = update_view
+    
+    # Specify if the image names can be picked
+    NavigationToolbar2.picker = picker
+    
+    # If picking mode, allow selecting the image by picking its name
+    if picker:
+        plt.connect(s = "pick_event", func = select_image)
+    
+    # Override the toolbar functions 'back' and 'forward' to move in the image stack
+    original_back = NavigationToolbar2.back
+    NavigationToolbar2.back = stack_back
+    original_forward = NavigationToolbar2.forward
+    NavigationToolbar2.forward = stack_forward
+    
+    return figure
             
-def display_diaporama(images):
+def display_diaporama(images, picker):
     """ Displays images in a diaporama using a dynamic interface.
         
     Parameters
     ----------
     images : list
         the list of images to display in diaporama
+        
+    picker : bool
+        specify if the images can be picked or not on the display.
     """
+    figure = set_figure(picker)
+    NavigationToolbar2.view = "diaporama"
+    
     # Personalise the toolbar by adding the stack of images
     image_stack = cbk.Stack()
     image_stack._elements = images
@@ -231,21 +306,28 @@ def display_diaporama(images):
     NavigationToolbar2.image_stack = image_stack
 
     # Start the image display
-    image = Image.open(os.path.join(NavigationToolbar2.event, images[0])) 
+    image = Image.open(os.path.join(config.images_path, config.DB.loc[images[0], "Event"], images[0])) 
     height = int(image.size[0] / 4)
     width = int(image.size[1] / 4)
     plt.imshow(image.resize((height, width)))
+    plt.title(f"{images[0]}", fontsize=7, picker = True)
     plt.axis("off")
     plt.show()
     
-def display_panorama(images):
+def display_panorama(images, picker):
     """ Displays images in a panorama using a dynamic interface.
     
     Parameters
     ----------
     images : list
         the nested list with groups of images to display in panorama
+
+    picker : bool
+        specify if the images can be picked or not on the display.
     """
+    figure = set_figure(picker)
+    NavigationToolbar2.view = "panorama"
+    
     # Fill the gaps such that the image list is a multiple of 15
     number_gaps = 15 - (len(images) % 15)
     
@@ -263,26 +345,31 @@ def display_panorama(images):
     NavigationToolbar2.image_stack = image_stack
     
     # Start the panorama display (15 images in 3 rows and 5 columns)
-    figure, axes = plt.subplots(3, 5)
-    for index, image in enumerate(group_images[0]):
+    axes = figure.subplots(3, 5)
+    for index, image_name in enumerate(group_images[0]):
         i = int(index / 5)
         j = int(index % 5)
-        if image is None:
+        if image_name is None:
             axes[i, j].imshow(empty_image)
         else:
             try:
-                image = Image.open(os.path.join(NavigationToolbar2.event, image))
-                height = int(image.size[0] / 4)
-                width = int(image.size[1] / 4)
+                image = Image.open(os.path.join(config.images_path, config.DB.loc[image_name, "Event"], image_name))
+                height = int(image.size[0] / 20)
+                width = int(image.size[1] / 20)
                 axes[i, j].imshow(image.resize((height, width)))
-                axes[i, j].set_title(f"Image number = {index}", fontsize=7)
+                axes[i, j].set_title(f"{image_name}", fontsize=7).set_picker(True)
             except UnidentifiedImageError:
                 axes[i, j].imshow(empty_image)
         axes[i, j].set_axis_off()
     plt.show()
     
-def display():
-    """ Asks the user if the display must be a diaporama or panorama and launches the display. 
+def display(picker = False):
+    """ Asks the user if the display must be a diaporama or panorama and launches the display.
+    
+    Parameters
+    ----------
+    picker : bool
+        specify if the images can be picked or not on the display.
     """
     
     # Launch either diaporama or panorama display
@@ -291,40 +378,41 @@ def display():
         answer = input("Would you like to view the images in a diaporama or panorama?"
                        " (D/Diaporama or P/Panorama or Q/Quit):\n").lower()
         print()
-        
+
         if answer in ["q", "quit"]:
-        raise SystemExit
-        
+            raise SystemExit
         elif answer in ["d", "diaporama", "p", "panorama"]:
-        
+
             # Load images to display
             event_path = get_event()
             event = os.path.basename(event_path)
-            event_DB = pd.read_pickle(os.path.join(os.environ["PROGRAM_PATH"],"image_DB.pkl"))["Event"]
-            images = list(pd.Series(event_DB[event_DB == event].index))
-
-            # Personalise the toolbar by adding a viewing method and keeping track of the current event
-            NavigationToolbar2.update_view = update_view
-            NavigationToolbar2.event = event_path
-
-            # Override the toolbar functions 'back' and 'forward' to move in the image stack
-            original_back = NavigationToolbar2.back
-            NavigationToolbar2.back = stack_back
-            original_forward = NavigationToolbar2.forward
-            NavigationToolbar2.forward = stack_forward
+            images = list(config.DB[config.DB["Event"] == event].index)
 
             # Launch the appropriate display
             if answer in ["d", "diaporama"]:
-                NavigationToolbar2.view = "diaporama"
-                display_diaporama(images)
+                display_diaporama(images, picker)
             else:
-                NavigationToolbar2.view = "panorama"
-                display_panorama(images)
+                display_panorama(images, picker)
 
-            # Re-implement default toolbar functions
-            NavigationToolbar2.back = original_back
-            NavigationToolbar2.forward = original_forward
-        
         else:
             print("Error! Please enter one of the valid options as displayed...")
             answer = False
+
+def select_image(pick_event):
+    """ Returns the image name that has been picked by user.
+    
+    Parameters
+    ----------
+    pick_event : matplotlib.backend_bases.PickEvent
+        the event that was picked on the figure.
+    """
+    if isinstance(pick_event.artist, Text):
+        plt.close('all')
+        title = pick_event.artist
+        image = title.get_text()
+        try:
+            imedit.edit(image)
+        except SystemExit:
+            pass
+    else:
+        raise SystemExit

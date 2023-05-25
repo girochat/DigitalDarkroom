@@ -1,11 +1,14 @@
 import os
+import pandas as pd
+import config
 import image_upload as imload 
 import display_images as implay
 import edit_images as imedit
+import organise_images as imchange
+import visualise_map as immap
+import organise_images as imchange
 
 # Define constant global variables for program paths
-os.environ["PROGRAM_PATH"] = os.path.dirname(os.path.realpath(__file__))  
-os.environ["IMAGES_PATH"] = os.path.join(os.environ["PROGRAM_PATH"], "Images")
 try:
     os.environ["HOME_PATH"] = os.environ['HOME']
 except KeyError:
@@ -28,9 +31,13 @@ while not quit:
     # Display (and launch) program activities to the user
     print("What do you want to do?")
     next_task = input("- Upload new images in Digital Darkroom => type 'U' or 'upload'\n"
-                     "- View your images stored in Digital Darkroom => type 'V' or 'view'\n"
-                     "- Edit an image stored in one of your event folders => type 'E' or 'edit'\n"
-                     "- Quit the program => type 'Q' or 'quit'\n").lower()
+                      "- View your images stored in Digital Darkroom => type 'V' or 'view'\n"
+                      "- Edit an image stored in one of your event folders => type 'E' or 'edit'\n"
+                      "- Locate your images on the world map => type 'M' or 'map''\n"
+                      "- See the geographical heatmap of your images => 'H' or 'heatmap'\n"
+                      "- Change information of an event or image => type 'C' or 'change'\n"
+                      "- Delete events or images => type 'D' or 'delete'\n"
+                      "- Quit the program => type 'Q' or 'quit'\n").lower().strip()
     print()
     
     if next_task in ["u", "upload"]:
@@ -47,7 +54,31 @@ while not quit:
 
     elif next_task in ["e", "edit"]:
         try:
-            imedit.edit()
+            imedit.select_image()
+        except SystemExit:
+            pass
+
+    elif next_task in ["c", "change"]:
+        try:
+            imchange.change_info()
+        except SystemExit:
+            pass
+
+    elif next_task in ["m", "map"]:
+        try:
+            immap.plot_locations()
+        except SystemExit:
+            pass
+        
+    elif next_task in ["h", "heatmap"]:
+        try:
+            immap.plot_geo_heatmap()
+        except SystemExit:
+            pass
+
+    elif next_task in ["d", "delete"]:
+        try:
+            imchange.delete()
         except SystemExit:
             pass
         
@@ -59,8 +90,10 @@ while not quit:
             print(font.renderText('Bye, Bye!\n'))
         else:
             print("Bye, Bye!\n\n")
+        
+        # Save the image DB
+        config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
 
     else:
         print("Error! Please enter one of the valid options as displayed...")
-        
-  
+

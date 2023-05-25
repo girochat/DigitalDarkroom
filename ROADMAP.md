@@ -12,8 +12,6 @@ Here you'll find important documentation about the project. If you have suggesti
 
 [README.md](README.md) : this file contains all the general information about the project. If you haven't installed the program yet, this is the way to go.
 
-[CONTRIBUTING.md](/CONTRIBUTING.md) : this file contains all necessary guidelines if you want to delve in right away :muscle: <!--structure contibutions, provide guidelines, document style, improve efficiency-->
-
 [Contributor Covenant](https://www.contributor-covenant.org/version/1/4/code-of-conduct/) : please check this code of conduct. It might seem a formality but it is important to us that certain core and universal principles are respected between collaborators. 
 
 [GPLv3 LICENSE](https://www.gnu.org/licenses/gpl-3.0.en.html) :page_facing_up:
@@ -49,10 +47,10 @@ Include for each task:
 | Tasks | Timeframe |
 |-----:|-----------|
 |     [Project management](#project-management)| April 27 | 
-|     [Image Upload and Organization](#task-1-image-upload-and-organization)| May 4   |
-|     [Basic Image Editing](#task-2-basic-image-editing) | May 11   :construction:|
-|     [Image Metadata and Analysis](#task-3-image-metadata-and-analysis)| May 18|
-|     [Minimum viable project](#minimum-viable-project) | May 25   |
+|     [Image Upload and Organization](#task-1-image-upload-and-organization)| May 4 |
+|     [Basic Image Editing](#task-2-basic-image-editing) | May 11 |
+|     [Image Metadata and Analysis](#task-3-image-metadata-and-analysis)| May 18 |
+|     [Minimum viable project](#minimum-viable-project) | May 25 :construction:|
 |     [Presentation](#presentation-of-our-project) | June 1   |
 
 
@@ -61,22 +59,6 @@ Timeframe: April 27
 
 - define our mission, goals and the scope of the project
 - structre the project into milestones and break those further down into smaller tasks
-
-
-<details>
-<summary>Discuss: <!--only for us - was testing out features, sorry :smiley: --></summary>
-
-- [ ] How does our project best meet its objective?
-- [ ] Creating clean and effective code:
-    - clear logic and dependencies;
-    - clean organization of files and folders
-- [ ] Which functions should go into which modules?
-- [ ] How do our data flow through the project?
-- [ ] Which functions can be grouped together, or isolated?
-
-</details>
-
-
 
 ### Task 1: Image Upload and Organization 
 Timeframe: May 4
@@ -88,35 +70,38 @@ Timeframe: May 4
      - handle case where images are uploaded via folder or many files
      - upload via CLI ? -> many choices available to the user
      - list necessary dependencies in a file
- - Organize images into albums or categories, such as by date, event, location or subject.
+ - Organize images into event folders.
      - create Image class
-     - create Album class
-     - user can call Images by Album but also by dates or locations
+     - user can call Images by event but also by dates or locations
+     - diaporama or panaroma preview of the images in an event folder
 
 ### Task 2: Basic Image Editing 
 Timeframe: May 11
 
-- Enable users to perform basic image editing tasks via input to the terminal. 
-    - choose editing options : crop, face detector, labeling, BW filter (sepia? more?), adjust brightness/contrast, similarity dectector
-    - ameliorate user interface : dynamic interface   
+- Enable users to perform basic image editing tasks via input to the terminal.
+    - ameliorate user interface : dynamic interface
+    - select image to be edited directly from panorama or diaporama view
+    - choose editing options : adjust brightness/contrast, image enhancement
 - Provide a preview of the edited image before saving the changes.
     - ask for confirmation before saving changes
-    - provide a preview
+    - provide a preview 
     - allow for duplicate image with edited feature
-- Input via terminal -> argparse module?
+- Input via terminal 
     - update dependencies file
 
 ### Task 3: Image Metadata and Analysis 
 Timeframe: May 18
 
-- Allow users to view and edit metadata associated with their images, such as date, location, and camera settings. 
-    - offer to the user to edit the label, date, location (all attributes of class Image) of an image.
-    - offer to the user the possibility to merge or divide event/album
-    - add geo-data for where the image was taken
+- Allow users to view and edit metadata associated with their images. 
+    - allow the user to add geo-data to images or events
+    - offer to the user to edit the name and location (all attributes of class Image) of an image and an event folder
+    - add option to delete event folders or images
 
-- Provide visualizations and analysis of image metadata, such as the distribution of images by date or location, or histograms of camera settings (e.g., aperture, shutter speed).
+
+- Provide visualizations and analysis of image metadata.
     - visualise map of image locations
-    - visualise distribution of images that have faces, that have been edited...
+    - plot density maps for the image locations
+
 
 - Implement Unit tests :white_check_mark:
 
@@ -125,7 +110,6 @@ Timeframe: May 18
 ### Minimum viable project 
 Timeframe: May 25
 - Virtual environment
-- What does success look like?
 
 
 
@@ -137,7 +121,7 @@ The day we have all been waiting for - or so :sweat_smile:
 Task:
 - Stay calm
 - Try to articulate and speak loud enough
-- Celebrate the end :clinking_glasses:
+- Celebrate :clinking_glasses:
 
 
 
