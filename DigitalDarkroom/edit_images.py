@@ -154,8 +154,8 @@ def rotate_image(img, image_name):
     """
 
     func_map = {'90':Image.ROTATE_90,
-            '180':Image.ROTATE_180,
-            '270':Image.ROTATE_270}
+                '180':Image.ROTATE_180,
+                '270':Image.ROTATE_270}
     
     func_input = input("How many degrees would you like to rotate the image?\n"
                        "Type 90, 180 or 270\n")
