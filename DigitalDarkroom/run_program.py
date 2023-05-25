@@ -9,8 +9,6 @@ import visualise_map as immap
 import organise_images as imchange
 
 # Define constant global variables for program paths
-os.environ["PROGRAM_PATH"] = os.path.dirname(os.path.realpath(__file__))  
-#os.environ["IMAGES_PATH"] = os.path.join(os.environ["PROGRAM_PATH"], "Images")
 try:
     os.environ["HOME_PATH"] = os.environ['HOME']
 except KeyError:
