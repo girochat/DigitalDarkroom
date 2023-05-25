@@ -25,6 +25,7 @@ stack_forward
     Added as a private method to NavigationToolbar2.
     
 set_figure
+    Function to initialise a new figure with a personalised NavigationToolbar2.
 
 display
     Function to choose the type of image display in the dynamic interface.
@@ -83,15 +84,15 @@ def get_event():
             
     return event
 
-def save_image(edited_image, event_path):  # => use image name
+def save_image(edited_image, image_name):
     """ Allows to save an edited image in DigitalDarkroom.
     
     Parameters
     ----------
     edited_image : PIL.Image
         the edited image to save
-    event_path : str
-        the path to event folder containing original image
+    image_name : str
+        the name of the original image
     """
     
     # Ask user for confirmation
@@ -99,10 +100,13 @@ def save_image(edited_image, event_path):  # => use image name
     while not answer:
         answer = input("You asked to save the edited image."
                        " Would you like to preview the changes"
-                        " or directly save the edited image?"
-                        " (P/Preview or S/Save or Q/Quit)\n").lower()
+                       " or directly save the edited image?"
+                       " (P/Preview or S/Save or Q/Quit)\n").lower()
         print()
         if answer in ["p", "preview"]:
+            
+            # Display edited image
+            plt.gcf()
             plt.imshow(edited_image)
             plt.show()
             
@@ -112,14 +116,22 @@ def save_image(edited_image, event_path):  # => use image name
             print()
             
         if answer in ["s", "save"]:
-            image_name = input("Enter the name for your edited image: "
+            eidted_image_name = input("Enter the name for your edited image: "
                                "(Please specify the extension, ex: .jpg)\n")
             print()
             try:
-                edited_image.save(os.path.join(event_path, image_name))
+                # Save image file in Images
+                event_path = config.DB.loc[image_name, "Event"]
+                edited_image.save(os.path.join(config.images_path, event_path, image_name))
                 
                 # Update DB
+                new_row = config.DB.loc[image_name].copy()
+                new_row["Edited"] = True
+                config.DB.loc[edited_image_name] = new_row
+                print(config.DB)
+                #config.DB.to_pickle(os.path.join(config.program_path, "image_DB.pkl"))
                 answer = True
+                
             except ValueError:
                 print("Error! The file extension is not valid. Saving aborted.")
                 raise SystemExit
@@ -130,15 +142,15 @@ def save_image(edited_image, event_path):  # => use image name
             print("Error! Please enter one of the valid options as displayed...")
             answer = False
     
-def preview(edited_image, event_path):
+def preview(edited_image, image_name):
     """ Preview edited changes of an image.
     
     Parameters
     ----------
     edited_image : PIL.Image 
         the edited image to preview
-    event_path : str
-        the path to event folder containing original image
+    image_name : str
+        the name of the original image
     """ 
     
     # Initialise a new figure of fixed size
@@ -157,7 +169,7 @@ def preview(edited_image, event_path):
         answer = input("Would you like to save the edited image? (S/Save or Q/Quit)\n").lower()
         print()
         if answer in ["s", "save"]:
-            save_image(edited_image, event_path)
+            save_image(edited_image, image_name)
         elif answer in ["q", "quit"]:
             raise SystemExit
         else:
