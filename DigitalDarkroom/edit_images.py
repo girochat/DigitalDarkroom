@@ -12,6 +12,9 @@ filter_image
 enhance_image
     Function to enhance brightness, sharpness, colour or contrast.
 
+rotate_image
+    Function to rotate an image by 90, 180 or 270 degrees.
+
 edit
     Function to select the editing option.
 """
@@ -137,7 +140,34 @@ def enhance_image(img, image_name):
     curr_sharp = func_map[func_input](img)
     img_sharped = curr_sharp.enhance(float(effect))
     implay.preview(img_sharped, image_name)
+
+def rotate_image(img, event_path):
+    """ Function to let the user rotate an image
     
+    Parameters
+    ----------
+    img : PIL.Image
+        the image to rotate.
+    
+    event_path : str
+        the path to the event of the image.
+    """
+
+    func_map = {'90':Image.ROTATE_90,
+            '180':Image.ROTATE_180,
+            '270':Image.ROTATE_270}
+    
+    func_input = input("How many degrees would you like to rotate the image?\n"
+                       "Type 90, 180 or 270\n")
+    
+    while func_input.strip() not in func_map.keys():
+        func_input = input("Could not be found. Try again or press q.\n")
+        if func_input.strip() in ["q", "quit"]:
+            print('goodbye!')
+            sys.exit()
+
+    img_transposed = img.transpose(func_map[func_input])
+    implay.preview(img_transposed, event_path)    
 
 def edit(image_name):
     """ Function to handle user input for image editing.
@@ -150,7 +180,7 @@ def edit(image_name):
     # Load the image
     event_path = os.path.join(config.images_path, config.DB.loc[image_name, "Event"])
     image = Image.open(os.path.join(event_path, image_name))
-    
+
     quit_editing = False
     while not quit_editing:
 
@@ -158,6 +188,7 @@ def edit(image_name):
         print("What do you want to do?")
         next_task = input("- Filter an image  => type 'F' or 'filter'\n"
                           "- Enhance an image => type 'E' or 'enhance'\n"
+                          "- Rotate image => type 'R' or 'rotate'\n"
                           "- Go back to the main program => type 'Q' or 'quit'\n").lower()
         
         if next_task in ["f", "filter"]:
@@ -165,7 +196,10 @@ def edit(image_name):
             
         elif next_task in ["e", "enhance"]:
             enhance_image(image, image_name)
-            
+
+        elif next_task in ["r", "rotate"]:
+            rotate_image(image, event_path)
+
         elif next_task in ["q", "quit"]:
             raise SystemExit
 
