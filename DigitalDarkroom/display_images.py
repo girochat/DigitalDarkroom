@@ -372,12 +372,13 @@ def display(picker = False):
         specify if the images can be picked or not on the display.
     """
     
+    # Launch either diaporama or panorama display
     answer = False
     while not answer:
         answer = input("Would you like to view the images in a diaporama or panorama?"
                        " (D/Diaporama or P/Panorama or Q/Quit):\n").lower()
         print()
-        
+
         if answer in ["q", "quit"]:
             raise SystemExit
         elif answer in ["d", "diaporama", "p", "panorama"]:
