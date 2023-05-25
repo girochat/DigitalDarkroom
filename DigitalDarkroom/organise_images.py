@@ -13,6 +13,7 @@ from geopy.geocoders import Nominatim
 import pandas as pd
 import numpy as np
 from PIL import (Image, UnidentifiedImageError)
+from display_images import get_event
 
 #######################################################################
 #Extract metadata
@@ -84,7 +85,7 @@ def extract_metadata_upload(full_file_name, dest, filename, add_geo = False, sin
                 config.DB.loc[filename, ["Latitude", "Longitude", "Location"]] = coords
             if coords:
                 config.DB.loc[filename, ["Latitude", "Longitude", "Location"]] = coords
-        config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl")) 
+        config.DB.to_pickle(os.path.join(config.program_path, "image_DB.pkl")) 
         shutil.copy(full_file_name, dest)
     except UnidentifiedImageError:
         print("Not an image")
@@ -104,8 +105,9 @@ def location_event_db(event_name, location_name):
     """
     coords = get_coords(location_name)
     config.DB.loc[config.DB.Event ==event_name, ["Latitude", "Longitude", "Location"]] = coords  #location for event
-    config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
+    config.DB.to_pickle(os.path.join(config.program_path, "image_DB.pkl"))
     return config.DB
+
 
 
 def location_image_db(image_name, location_name): 
@@ -118,25 +120,20 @@ def location_image_db(image_name, location_name):
     """
     coords = get_coords(location_name)
     config.DB.loc[image_name, ["Latitude", "Longitude", "Location"]] = coords 
-    config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
+    config.DB.to_pickle(os.path.join(config.program_path, "image_DB.pkl"))
     print("The location has been changed.")
     return config.DB
 
 def change_info_event():
     """Function to change the information of an event (name or location)
     """
-    # list the available events and test if user input is correct
-    list_event = np.unique(config.DB["Event"].dropna())
-    for event_name in list_event:
-        print(event_name)
-    event = input("For which event would you like to change the information? Type 'q' to quit.\n").strip()
+    event_path = get_event()
 
-    while event not in list_event:
-        print("Sorry, the event was not found. Try again or type q to quit.")
-        event = input("For which event would you like to change the information?\n").strip()
-        if event.lower() in ["q", "quit"]:
-            print("You decided not to change the event information.")
-            raise SystemExit
+    if os.path.normpath(event_path) == os.path.normpath(config.images_path):
+        print("You decided not to change the event info")
+        raise SystemExit
+    
+    event = os.path.basename(event_path)
 
     # list options and let user choose one of them
     while True:
@@ -149,7 +146,7 @@ def change_info_event():
             new_name = input("What should the new name for the event be\n")
             try:
                 config.DB.loc[config.DB.Event ==event, ["Event"]] = new_name  #location for event
-                config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
+                config.DB.to_pickle(os.path.join(config.program_path, "image_DB.pkl"))
                 os.rename(os.path.join(config.images_path, event), os.path.join(config.images_path, new_name))
                 break
             except OSError as e:
@@ -172,25 +169,22 @@ def change_info_event():
 def change_info_image():
     """Function to change the name or location of an image
     """
-    # list event names and test if user chose available event
-    list_event = np.unique(config.DB["Event"].dropna())
-    for event_name in list_event:
-        print(event_name)
-    event = input("In which event is the file located?\n")
-
-    while event not in list_event:
-        print("Sorry, the event was not found. Try again or type q to quit.")
-        event = input("In which event is the file located?\n").strip()
-        if event.lower() in ["q", "quit"]:
-            print("You decided not to change the event information.")
-            raise SystemExit
-    event_path = os.path.join(config.images_path, event)
+    # get the event path
+    event_path = get_event()
 
     # list picture names and test if picture exists
     print("The following images are in the event:")
     for file in os.listdir(event_path):
-        print(file)
-    image_name = input("For which image would you like to change the information?\n") 
+        # check if current path is a file
+        if os.path.isfile(os.path.join(event_path, file)):
+            print(file)
+    image_name = input("For which image would you like to change the information?\n"
+                       "Enter the name or press 'q' to quit.\n") # select from panorama
+
+    if image_name.lower() in ["q", "quit"]:
+        print("You decided not to change the image information.\n")
+        raise SystemExit
+    
     file_path = os.path.join(event_path, image_name)
 
     while not os.path.isfile(file_path):
@@ -212,7 +206,7 @@ def change_info_image():
             new_name = input("What should the new name for the image be? \n")
             try:
                 config.DB.rename(index={image_name:new_name}, inplace=True)
-                config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
+                config.DB.to_pickle(config.program_path, "image_DB.pkl")
                 os.rename(file_path, os.path.join(event_path, new_name))
                 print("The name has been changed.")
                 break
@@ -265,24 +259,15 @@ def change_info():
 def del_event():
     """Function to delete an entire event
     """
-    # list events
-    list_event = np.unique(config.DB["Event"].dropna())
-    for event_name in list_event:
-        print(event_name)
-    event = input("Which event would you like to delete? Write the name or press 'q' to quit. \n")
-    print()
-    while event not in list_event and event not in ['q', 'quit']:
-        print("Sorry, the event was not found. Try again or type q to quit.")
-        event = input("Which event would you like to delete?\n").strip()
-    if event.lower() in ["q", "quit"]:
-        print("You decided not to change the event information.")
+    event_path = get_event()
+    if os.path.normpath(event_path) == os.path.normpath(config.images_path):
+        print("You decided not to delete the event")
         raise SystemExit
     
-    # delete event from database and from images folder
-    event_path = os.path.join(config.images_path, event)
+    event = os.path.basename(event_path)
     config.DB = config.DB.drop(config.DB[config.DB.Event == event].index)
     print("Event deleted from database")
-    config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
+    config.DB.to_pickle(config.program_path, "image_DB.pkl")
     try:
         shutil.rmtree(event_path)
     except OSError as e:
@@ -292,35 +277,30 @@ def del_event():
 def del_file():
     """Function to delete a file within an event 
     """
-    # list events
-    list_event = np.unique(config.DB["Event"].dropna())
-    for event_name in list_event:
-        print(event_name)
-    event = input("In which event is the file located?\n").strip()
-    while event not in list_event:
-        print("Sorry, the event was not found. Try again or type q to quit.")
-        event = input("In which event is the file located?\n").strip()
-        if event.lower() in ["q", "quit"]:
-            print("You decided not to change the event information.")
-            raise SystemExit
-    event_path = os.path.join(config.images_path, event)
+    event_path = get_event()
 
     # list images in event
     print("The following images are in the event:")
+    # check if current path is a file
     for file in os.listdir(event_path):
-        print(file)
-    file = input("Which file would you like to delete?\n")
+    # check if current path is a file
+        if os.path.isfile(os.path.join(event_path, file)):
+            print(file)
+
+    file = input("Which file would you like to delete?\n"
+                 "Enter its name or press q to quit.\n")
     print()
+    if file.lower() in ["q", "quit"]:
+        print("You decided not to delete the image.\n")
+        raise SystemExit
     while file not in os.listdir(event_path):
         print("Sorry, the file was not found. Try again or type q to quit.")
-        file = input("Type the name of the file you would like to delete?\n").strip()
+        file = input("Type the name of the file you would like to quit?\n").strip()
         if file.lower() in ["q", "quit"]:
             print("You decided not to delete the file.")
             raise SystemExit
+
     file_path = os.path.join(event_path, file)
-    if not os.path.isfile(file_path):
-        print("Sorry, the image was not found... \n")
-        raise SystemExit
 
     # Try to delete the file
     try:

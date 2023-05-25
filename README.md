@@ -52,8 +52,8 @@ You can also open a [new issue](https://github.com/AdvPyS23/DigitalDarkroom/issu
 In the [ROADMAP](/ROADMAP.md) you can find the major milestones of the project with their corresponding deadlines.
 
 ## Contributing 
-We welcome anyone willing to contribute to the project :pray:   
-See [CONTRIBUTING](/CONTRIBUTING.md) for information on how to contribute.   
+We welcome anyone willing to contribute to the project :pray:
+Have a look at the [ROADMAP](/ROADMAP.md) for information on how to contribute.
 See also the [open issues](https://github.com/AdvPyS23/DigitalDarkroom/issues) that are still of dire need of contributors. :bell:
 
 ## Acknowledgements
