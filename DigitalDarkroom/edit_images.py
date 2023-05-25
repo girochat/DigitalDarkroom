@@ -62,7 +62,7 @@ def select_image():
             answer = False
             
 
-def filter_image(img, event_path):
+def filter_image(img, image_name):
     """ Let the user select a filter from different options to apply to the image
     
     Parameters
@@ -70,8 +70,8 @@ def filter_image(img, event_path):
     img : PIL.Image
         the image to apply filter on.
     
-    event_path : str
-        the path to the event of the image.
+    image_name : str
+        the name of the original image
     """
     func_input = input("What type of image filtering would you like to do?\n"
                        "- Changing the contour => type 'c'\n"
@@ -93,13 +93,13 @@ def filter_image(img, event_path):
     if func_input.strip() in func_map.keys():
         func = func_map[func_input]
         im2 = img.filter(func)
-        implay.preview(im2, event_path) 
+        implay.preview(im2, image_name) 
     
     else:
         print("Sorry, the option could not be found!")
 
 
-def enhance_image(img, event_path):
+def enhance_image(img, image_name):
     """ Function to let the user apply different image enhancement options
     
     Parameters
@@ -107,8 +107,8 @@ def enhance_image(img, event_path):
     img : PIL.Image
         the image to apply filter on.
     
-    event_path : str
-        the path to the event of the image.
+    image_name : str
+        the name of the original image.
     """
     func_map = {'s':ImageEnhance.Sharpness,
                 'b':ImageEnhance.Brightness,
@@ -139,18 +139,18 @@ def enhance_image(img, event_path):
     
     curr_sharp = func_map[func_input](img)
     img_sharped = curr_sharp.enhance(float(effect))
-    implay.preview(img_sharped, event_path)
+    implay.preview(img_sharped, image_name)
 
-def rotate_image(img, event_path):
-    """ Function to let the user rotate an image
+def rotate_image(img, image_name):
+    """ Function to let the user rotate an image.
     
     Parameters
     ----------
     img : PIL.Image
         the image to rotate.
     
-    event_path : str
-        the path to the event of the image.
+    image_name : str
+        the name of the original image.
     """
 
     func_map = {'90':Image.ROTATE_90,
@@ -167,20 +167,19 @@ def rotate_image(img, event_path):
             sys.exit()
 
     img_transposed = img.transpose(func_map[func_input])
-    implay.preview(img_transposed, event_path)
-    
+    implay.preview(img_transposed, image_name)    
 
-def edit(image):
+def edit(image_name):
     """ Function to handle user input for image editing.
     
     Parameters
     ----------
-    image : str
+    image_name : str
         the image name to edit.
     """
-    # Get the event of the image
-    event_path = os.path.join(config.images_path, config.DB.loc[image, "Event"])
-    image = Image.open(os.path.join(event_path, image))
+    # Load the image
+    event_path = os.path.join(config.images_path, config.DB.loc[image_name, "Event"])
+    image = Image.open(os.path.join(event_path, image_name))
 
     quit_editing = False
     while not quit_editing:
@@ -193,13 +192,13 @@ def edit(image):
                           "- Go back to the main program => type 'Q' or 'quit'\n").lower()
         
         if next_task in ["f", "filter"]:
-            filter_image(image, event_path)
-
+            filter_image(image, image_name)
+            
         elif next_task in ["e", "enhance"]:
-            enhance_image(image, event_path)
+            enhance_image(image, image_name)
 
         elif next_task in ["r", "rotate"]:
-            rotate_image(image, event_path)
+            rotate_image(image, image_name)
 
         elif next_task in ["q", "quit"]:
             raise SystemExit
