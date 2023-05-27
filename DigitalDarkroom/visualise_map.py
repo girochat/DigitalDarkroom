@@ -47,7 +47,7 @@ def plot_locations():
     figure, axis = plt.subplots()
 
     # Plot the world map
-    world_map = gpd.read_file('worldmap.shp')
+    world_map = gpd.read_file(os.path.join(config.program_path,'worldmap.shp'))
     world_map.plot(ax = axis, column = 'LABEL_Y', cmap = "viridis")
     axis.set_axis_off()
 
@@ -66,13 +66,13 @@ def plot_geo_heatmap():
     """ Plots density of image locations on worldmap.
     """
     # Load the world map and the image locations
-    world_map = gpd.read_file('worldmap.shp')
+    world_map = gpd.read_file(os.path.join(config.program_path, 'worldmap.shp'))
     images = gpd.GeoDataFrame(config.DB[["Latitude", "Longitude", "Location"]], 
                               geometry = gpd.points_from_xy(config.DB["Longitude"],
                                                             config.DB["Latitude"],
                                                             crs = world_map.crs))
     # Set the projection
-    proj = gplt.crs.PlateCarree()
+    proj = gplt.crs.PlateCarre()
 
     # Plot geo heatmap of the image locations
     ax1 = gplt.kdeplot(images,

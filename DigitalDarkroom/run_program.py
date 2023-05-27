@@ -92,7 +92,7 @@ while not quit:
             print("Bye, Bye!\n\n")
         
         # Save the image DB
-        config.DB.to_pickle(os.path.join(os.environ["PROGRAM_PATH"], "image_DB.pkl"))
+        config.DB.to_pickle(os.path.join(config.program_path, "image_DB.pkl"))
 
     else:
         print("Error! Please enter one of the valid options as displayed...")

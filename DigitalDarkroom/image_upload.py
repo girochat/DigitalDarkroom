@@ -98,7 +98,6 @@ def single_file(source, dest):
 
     # Check if results are files
     if os.path.isfile(path_to_file):
-        #shutil.copy(path_to_file, dest)
         ans_geo = False
         ans_geo = input("Would you like to add geoinformation to the image? Type Y or N.").lower()
         if ans_geo in ['y', 'yes']:
