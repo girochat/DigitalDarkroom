@@ -8,14 +8,14 @@ class TestGettingEvent(unittest.TestCase):
     
     @patch("display_images.input")
     def test_get_event(self, mocked_input):
-        # Test cases where input is "yes" (wrong event name and correct event name)
+        # Test cases where input is an event (wrong event name and correct event name)
         event = config.DB["Event"][0]
-        mocked_input.side_effect = ["Y", "not_event", "Y", event]
+        mocked_input.side_effect = ["not_event", event]
         self.assertEqual(get_event(), os.path.join(config.images_path, event))
         
-        # Test the case where input is "no"
-        mocked_input.side_effect = ["N"]
-        self.assertEqual(get_event(), config.images_path)
+        # Test cases where input is empty event
+        mocked_input.side_effect = [""]
+        self.assertEqual(get_event(), os.path.join(config.images_path, ""))       
         
         # Test the case where input is "quit"
         mocked_input.side_effect = ["Q", "some_wrong_input", "Quit"]
