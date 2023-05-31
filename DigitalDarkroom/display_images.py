@@ -76,7 +76,7 @@ def get_event():
         if event in os.listdir(config.images_path) or event == "":
             event = os.path.join(config.images_path, event)
             
-        elif event in ["q", "quit"]:
+        elif event.lower() in ["q", "quit"]:
             raise SystemExit
         else:
             print("Sorry, the event was not found... \n")
@@ -387,12 +387,21 @@ def display(picker = False):
             event_path = get_event()
             event = os.path.basename(event_path)
             images = list(config.DB[config.DB["Event"] == event].index)
-
+            
+            # Save toolbar default navigation functions 
+            back = NavigationToolbar2.back
+            forward = NavigationToolbar2.forward
+            
             # Launch the appropriate display
             if answer in ["d", "diaporama"]:
+
                 display_diaporama(images, picker)
             else:
                 display_panorama(images, picker)
+            
+            # Restore toolbar default navigation functions
+            NavigationToolbar2.back = back
+            NavigationToolbar2.forward = forward
 
         else:
             print("Error! Please enter one of the valid options as displayed...")
